@@ -130,8 +130,10 @@ class UARTMonitor(Thread):
 
         frame_buffer = bytearray()
         in_frame = False
+        frame_processed_successfully = False
         payload_length = 0
         bytes_read = 0
+        buffer_size = len(buffer) - 1
 
         for byte in buffer:
             if byte == 0xAA:  # Start of frame
@@ -141,21 +143,32 @@ class UARTMonitor(Thread):
             elif in_frame:
                 frame_buffer.append(byte)
                 bytes_read += 1
+                print(buffer_size, bytes_read)
                 if bytes_read == 2:  # Assuming the second byte is payload_length
                     payload_length = byte
 
                 if (
                     bytes_read > 2 and bytes_read == payload_length + 5
-                ):  # +3 for start_of_frame, frame_id, and payload_length itself
+                ):  # +5 for start_of_frame, frame_id, payload_length, and crc16
                     if byte == 0x55:  # End of frame
                         self.decode_frame(frame_buffer)
-                    else:
+                        frame_processed_successfully = True
+                    else:  # Incorrect end of frame byte
                         self.logger.consoleLogger.warn(
                             "Frame error: Incorrect end of frame byte"
                         )
                         in_frame = False
+                        frame_processed_successfully = False
 
-        return in_frame
+                # Check if this is the last byte but still in a frame
+                if bytes_read == buffer_size and in_frame:
+                    self.logger.consoleLogger.warn(
+                        "Frame error: Incomplete frame at end of buffer"
+                    )
+                    in_frame = False
+                    frame_processed_successfully = False
+
+        return frame_processed_successfully
 
     def decode_frame(self, frame_bytes):
         # Desconstructing the frame
@@ -195,12 +208,12 @@ class UARTMonitor(Thread):
         )
 
     def check_crc(self, payload, payload_length, crc_value):
-        INITIAL_REMAINDER = 0xFFFF
+        INITIAL_REMAINDER = 0xFF
         FINAL_XOR_VALUE = 0x0000
         remainder = INITIAL_REMAINDER
 
         for byte in range(payload_length):
-            data = payload[byte] ^ (remainder >> (16 - 8))
+            data = payload[byte] ^ remainder
             remainder = crcTable[data] ^ (remainder << 8) & 0xFFFF
 
         return crc_value == (remainder ^ FINAL_XOR_VALUE)
