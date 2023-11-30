@@ -25,7 +25,7 @@ class UARTMonitor(Thread):
         event_heartbeat: Event,
         event_stop: Event,
         freq=100,
-        tty="/dev/ttyACM0",
+        tty="/dev/ttyUSB0",
         baudrate=115200,
     ):
         Thread.__init__(self)
@@ -51,7 +51,7 @@ class UARTMonitor(Thread):
 
         self.last_serial = time.time()
 
-        serial = self.PI.serial_open("/dev/serial0", self.baudrate)
+        serial = self.PI.serial_open(self.tty, self.baudrate)
 
         while not self.event_stop.is_set():
             # Set heartbeat signal
@@ -123,7 +123,7 @@ class UARTMonitor(Thread):
         bytes_read = 0
 
         for byte in buffer:
-            if byte == b"\xAA":  # Start of frame
+            if byte == 0xAA:  # Start of frame
                 in_frame = True
                 frame_buffer = bytearray(byte)
                 bytes_read = 0
@@ -136,7 +136,7 @@ class UARTMonitor(Thread):
                 if (
                     bytes_read > 2 and bytes_read == payload_length + 5
                 ):  # +3 for start_of_frame, frame_id, and payload_length itself
-                    if byte == b"\x55":  # End of frame
+                    if byte == 0x55:  # End of frame
                         self.decode_frame(frame_buffer)
                         in_frame = False
                     else:
