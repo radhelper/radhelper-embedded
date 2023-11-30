@@ -1,0 +1,27 @@
+[build-system]
+requires = [
+"setuptools>=42",
+"wheel",
+]
+build-backend = "setuptools.build_meta"
+[project]
+name = "Trikaneros_Tester"
+description = "Trikaneros Tester - Automated testing utility for fault tolerance monitoring in radiation environments"
+version = '0.0.1'
+readme = "README.md"
+requires-python = ">=3.7"
+dependencies = [
+'argparse',
+'clang-format',
+'yapf',
+'isort',
+'coloredlogs',
+'logging',
+'python-json-logger',
+'pigpio',
+'openocd',
+'pi-ina219',
+'requests',
+]
+[tool.setuptools]
+packages = ['Trikaneros_Tester']
