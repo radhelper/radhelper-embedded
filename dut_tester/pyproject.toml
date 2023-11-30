@@ -5,7 +5,7 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 [project]
-name = "Trikaneros_Tester"
+name = "DUT_Tester"
 description = "Trikaneros Tester - Automated testing utility for fault tolerance monitoring in radiation environments"
 version = '0.0.1'
 readme = "README.md"
@@ -24,4 +24,4 @@ dependencies = [
 'requests',
 ]
 [tool.setuptools]
-packages = ['Trikaneros_Tester']
+packages = ['DUT_Tester']

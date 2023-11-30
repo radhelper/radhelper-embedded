@@ -8,7 +8,7 @@
             "name": "Trikarenos Tester Server",
             "type": "python",
             "request": "launch",
-            "program": "Trikaneros_Tester/main.py",
+            "program": "DUT_Tester/main.py",
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
@@ -20,7 +20,7 @@
             "name": "Trikarenos Tester Client",
             "type": "python",
             "request": "launch",
-            "program": "Trikaneros_Tester/main.py",
+            "program": "DUT_Tester/main.py",
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [

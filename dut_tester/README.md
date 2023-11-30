@@ -4,8 +4,8 @@
 
 1. Clone this repository:
     ```sh
-    $> git clone git@iis-git.ee.ethz.ch:space-pulp/trikaneros_tester.git
-    $> cd trikaneros_tester
+    $> git clone git@iis-git.ee.ethz.ch:space-pulp/DUT_Tester.git
+    $> cd DUT_Tester
     ```
 
 2. Create a new virtual environment in the `venv` folder and install Trikaneros Tester as editable package.
@@ -24,7 +24,7 @@ $> python -m venv .venv
 ```
 
 ## On the Client (Raspberry Pi)
-The Raspberry Pi automatically enters the `/opt/trikaneros_tester` directory and activates the virtual python environmnt.
+The Raspberry Pi automatically enters the `/opt/DUT_Tester` directory and activates the virtual python environmnt.
 
 1. Configure the IP address on the SD-card by modififying `ip=192.168.1.XX` in `cmdline.txt` on the boot partition of the SD card.
 2. Boot the Raspberry Pi, connect via SSH.
@@ -42,7 +42,7 @@ The Raspberry Pi automatically enters the `/opt/trikaneros_tester` directory and
     ```
 5. Modify the IP address of the server
     ```sh
-    # Modify the ExecStart=/opt/trikaneros_tester/.venv/bin/python -m Trikaneros_Tester client <ip_address> ../trikaneros_radiation_app
+    # Modify the ExecStart=/opt/DUT_Tester/.venv/bin/python -m DUT_Tester client <ip_address> ../trikaneros_radiation_app
     $> sudo nano /etc/systemd/system/trikarenos_tester.service
     $> sudo systemctl daemon-reload
     $> sudo systemctl restart trikarenos_tester.service
@@ -51,7 +51,7 @@ The Raspberry Pi automatically enters the `/opt/trikaneros_tester` directory and
 You can also start a local version of the client (no system service) by running
 ```sh
 $> source .venv/bin/activate
-$> python -m Trikaneros_Tester client -h
+$> python -m DUT_Tester client -h
 ```
 
 ## On the Server
@@ -59,8 +59,8 @@ $> python -m Trikaneros_Tester client -h
 2. Start server
     ```sh
     $> source .venv/bin/activate
-    $> python -m Trikaneros_Tester server -h
-    $> python -m Trikaneros_Tester server <Raspberry Pi IP>
+    $> python -m DUT_Tester server -h
+    $> python -m DUT_Tester server <Raspberry Pi IP>
     ```
 
 **Make sure to specify the correct ip address and id for the power switch.**
@@ -76,10 +76,10 @@ $> python -m Trikaneros_Tester client -h
 ```s
 # At University of Twente
 ## Standard Setup
-python -m Trikaneros_Tester server --switch_username "frits" --switch_password "Whiskers!" --switch_id 6 192.168.0.200 --fallback-power-switch
+python -m DUT_Tester server --switch_username "frits" --switch_password "Whiskers!" --switch_id 6 192.168.0.200 --fallback-power-switch
 
 ## Disable automatic power cycling of the Raspberry Pi
-python -m Trikaneros_Tester server 192.168.0.200 --no-power-cycle
+python -m DUT_Tester server 192.168.0.200 --no-power-cycle
 ```
 
 ## Installing the script as a systemd service
@@ -100,8 +100,8 @@ After=syslog.target network.target
 [Service]
 User=trikarenos
 Group=users
-WorkingDirectory=/opt/trikaneros_tester
-ExecStart=/opt/trikaneros_tester/.venv/bin/python -m Trikaneros_Tester client 192.168.0.2 ../trikaneros_radiation_app
+WorkingDirectory=/opt/DUT_Tester
+ExecStart=/opt/DUT_Tester/.venv/bin/python -m DUT_Tester client 192.168.0.2 ../trikaneros_radiation_app
 
 Restart=always
 RestartSec=5
