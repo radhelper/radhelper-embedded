@@ -62,7 +62,6 @@ class UARTMonitor(Thread):
             data_avaiable = self.PI.serial_data_available(serial)
             if data_avaiable:
                 _, d = self.PI.serial_read(serial)
-                # d = d.rstrip(b"\x00")
                 if len(d) > 0:
                     self.serial_timeout = False
                     self.last_serial = time.time()
@@ -81,17 +80,27 @@ class UARTMonitor(Thread):
                     )
                     self.logger.consoleLogger.info("[Serial] " + string.rstrip("\n"))
 
-                    self.check_for_frame(d)
+                    decoded_as_frame = self.check_for_frame(d)
 
-                    # self.logger.dataLogger.info(
-                    #     {
-                    #         "type": "Serial",
-                    #         "id": CLIENT_SERIAL_FRAME_RX,
-                    #         "timestamp": time.time(),
-                    #         "data": d,
-                    #     }
-                    # )
-                    # self.logger.consoleLogger.info("[Serial] " + d.rstrip("\n"))
+                    if decoded_as_frame:
+                        self.logger.dataLogger.info(
+                            {
+                                "type": "Serial",
+                                "id": CLIENT_SERIAL_FRAME_RX,
+                                "timestamp": time.time(),
+                                "data": d,
+                            }
+                        )
+                    else:
+                        self.logger.consoleLogger.warn("Frame incomplete!")
+                        self.logger.dataLogger.info(
+                            {
+                                "type": "Serial",
+                                "id": CLIENT_SERIAL_FRAME_ERROR,
+                                "timestamp": time.time(),
+                                "event": "Frame incomplete",
+                            }
+                        )
 
             if (
                 time.time() - self.last_serial > SERIAL_TIMEOUT
@@ -140,14 +149,16 @@ class UARTMonitor(Thread):
                 ):  # +3 for start_of_frame, frame_id, and payload_length itself
                     if byte == 0x55:  # End of frame
                         self.decode_frame(frame_buffer)
-                        in_frame = False
                     else:
                         self.logger.consoleLogger.warn(
                             "Frame error: Incorrect end of frame byte"
                         )
                         in_frame = False
 
+        return in_frame
+
     def decode_frame(self, frame_bytes):
+        # Desconstructing the frame
         header = frame_bytes[0]
         frame_id = frame_bytes[1]
         payload_length = frame_bytes[2]
@@ -164,6 +175,9 @@ class UARTMonitor(Thread):
 
         crc_check = self.check_crc(payload, payload_length, crc)
 
+        if crc_check is False:
+            self.logger.consoleLogger.info(f"CRC Check failed!")
+
         # print(f"Header: {hex(header)}")
         # print(f"Payload Length: {hex(payload_length)}")
         # print(f"Frame ID: {hex(frame_id)}")
@@ -171,7 +185,7 @@ class UARTMonitor(Thread):
         # print(f"CRC: {hex(crc)}")
         # print(f"Tail: {hex(tail)}")
 
-        self.logger.consoleLogger.info(
+        self.logger.dataLogger.info(
             {
                 "type": "Serial",
                 "frame type": frame_id,
