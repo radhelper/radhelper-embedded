@@ -5,11 +5,15 @@ from threading import Event, Thread
 
 import pigpio
 
-from DUT_Tester.log_id import CLIENT_SERIAL_TIMEOUT, CLIENT_SERIAL_RX
+from DUT_Tester.log_id import (
+    CLIENT_SERIAL_TIMEOUT,
+    CLIENT_SERIAL_FRAME_RX,
+    CLIENT_SERIAL_FRAME_ERROR,
+)
 from DUT_Tester.util import Logger
 
-from power_switch.error_codes import ErrorCodes
-import power_switch.powerswitch as ps
+from DUT_Tester.power_switch.error_codes import ErrorCodes
+import DUT_Tester.power_switch.powerswitch as ps
 
 SERIAL_TIMEOUT = 20
 
@@ -21,7 +25,7 @@ class UARTMonitor(Thread):
         event_heartbeat: Event,
         event_stop: Event,
         freq=100,
-        tty="/dev/serial0",
+        tty="/dev/ttyACM0",
         baudrate=115200,
     ):
         Thread.__init__(self)
@@ -61,17 +65,31 @@ class UARTMonitor(Thread):
                     self.serial_timeout = False
                     self.last_serial = time.time()
 
-                    self.check_for_frame(d)
-
+                    try:
+                        string = d.decode("utf-8")
+                    except:
+                        string = str(binascii.hexlify(d), "ascii")
                     self.logger.dataLogger.info(
                         {
                             "type": "Serial",
                             "id": CLIENT_SERIAL_RX,
                             "timestamp": time.time(),
-                            "data": d,
+                            "data": string,
                         }
                     )
-                    self.logger.consoleLogger.info("[Serial] " + d.rstrip("\n"))
+                    self.logger.consoleLogger.info("[Serial] " + string.rstrip("\n"))
+
+                    self.check_for_frame(d)
+
+                    # self.logger.dataLogger.info(
+                    #     {
+                    #         "type": "Serial",
+                    #         "id": CLIENT_SERIAL_FRAME_RX,
+                    #         "timestamp": time.time(),
+                    #         "data": d,
+                    #     }
+                    # )
+                    # self.logger.consoleLogger.info("[Serial] " + d.rstrip("\n"))
 
             if (
                 time.time() - self.last_serial > SERIAL_TIMEOUT
@@ -89,7 +107,7 @@ class UARTMonitor(Thread):
                 )
 
                 ## ADD POWER CYCLE
-                # ps.
+                # ps.power_cycle("192.168.0.1", 1)
 
             time.sleep(1 / self.freq)
 
@@ -122,7 +140,9 @@ class UARTMonitor(Thread):
                         self.decode_frame(frame_buffer)
                         in_frame = False
                     else:
-                        print("Frame error: Incorrect end of frame byte")
+                        self.logger.consoleLogger.warn(
+                            "Frame error: Incorrect end of frame byte"
+                        )
                         in_frame = False
 
     def decode_frame(self, frame_bytes):
@@ -149,3 +169,10 @@ class UARTMonitor(Thread):
         print(f"Payload: {payload_hex}")
         print(f"CRC: {hex(crc)}")
         print(f"Tail: {hex(tail)}")
+
+        self.logger.consoleLogger.info(
+            {
+                "type": "Serial",
+                "event": frame_id,
+            }
+        )
