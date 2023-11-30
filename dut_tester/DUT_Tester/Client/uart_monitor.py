@@ -128,10 +128,10 @@ class UARTMonitor(Thread):
                 frame_buffer = bytearray(byte)
                 bytes_read = 0
             elif in_frame:
-                frame_buffer.append(byte[0])
+                frame_buffer.append(byte)
                 bytes_read += 1
                 if bytes_read == 2:  # Assuming the second byte is payload_length
-                    payload_length = byte[0]
+                    payload_length = byte
 
                 if (
                     bytes_read > 2 and bytes_read == payload_length + 5
