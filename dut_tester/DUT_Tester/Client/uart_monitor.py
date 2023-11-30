@@ -153,6 +153,7 @@ class UARTMonitor(Thread):
                     if byte == 0x55:  # End of frame
                         self.decode_frame(frame_buffer)
                         frame_processed_successfully = True
+                        in_frame = False
                     else:  # Incorrect end of frame byte
                         self.logger.consoleLogger.warn(
                             "Frame error: Incorrect end of frame byte"
@@ -165,7 +166,6 @@ class UARTMonitor(Thread):
                     self.logger.consoleLogger.warn(
                         "Frame error: Incomplete frame at end of buffer"
                     )
-                    in_frame = False
                     frame_processed_successfully = False
 
         return frame_processed_successfully
@@ -208,12 +208,12 @@ class UARTMonitor(Thread):
         )
 
     def check_crc(self, payload, payload_length, crc_value):
-        INITIAL_REMAINDER = 0xFF
+        INITIAL_REMAINDER = 0xFFFF
         FINAL_XOR_VALUE = 0x0000
         remainder = INITIAL_REMAINDER
 
         for byte in range(payload_length):
-            data = payload[byte] ^ remainder
+            data = payload[byte] ^ (remainder >> (16 - 8))
             remainder = crcTable[data] ^ (remainder << 8) & 0xFFFF
 
         return crc_value == (remainder ^ FINAL_XOR_VALUE)
