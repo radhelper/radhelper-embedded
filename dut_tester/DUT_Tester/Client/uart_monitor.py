@@ -72,7 +72,7 @@ class UARTMonitor(Thread):
                     self.logger.dataLogger.info(
                         {
                             "type": "Serial",
-                            "id": CLIENT_SERIAL_RX,
+                            "id": CLIENT_SERIAL_FRAME_RX,
                             "timestamp": time.time(),
                             "data": string,
                         }
