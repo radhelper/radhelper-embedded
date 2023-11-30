@@ -8,15 +8,14 @@ from threading import Event
 import requests
 from requests.auth import HTTPBasicAuth
 
-from Trikaneros_Tester.log_id import SERVER_POWERCYCLE_RPI, SERVER_POWERCYCLE_RPI_FAILED
-from Trikaneros_Tester.power_switch.powerswitch import power_cycle
-from Trikaneros_Tester.Server.log_monitor import LogMonitor
-from Trikaneros_Tester.util import Logger
+from DUT_Tester.log_id import SERVER_POWERCYCLE_RPI, SERVER_POWERCYCLE_RPI_FAILED
+from DUT_Tester.power_switch.powerswitch import power_cycle
+from DUT_Tester.Server.log_monitor import LogMonitor
+from DUT_Tester.util import Logger
 
 
-class Server():
-
-    def __init__(self, args = None):
+class Server:
+    def __init__(self, args=None):
         self.event_stop = Event()
 
         self.log_folder = args.log_folder
@@ -36,7 +35,9 @@ class Server():
 
         self.last_fetch = time.time()
 
-        self.logger = Logger('Server', self.log_folder, self.ip_address, self.port, verbose = args.verbose)
+        self.logger = Logger(
+            "Server", self.log_folder, self.ip_address, self.port, verbose=args.verbose
+        )
 
         self.log_monitor = LogMonitor(self.logger, self.event_stop)
 
@@ -60,7 +61,7 @@ class Server():
 
             # WIESEP: Hack ping the raspberry pi due to arp issues
             self.ping_ip(self.client_ip)
-            for ip_address, _ in (self.logger.socketReceiver.clients):
+            for ip_address, _ in self.logger.socketReceiver.clients:
                 self.ping_ip(ip_address)
 
             time.sleep(1)
@@ -68,8 +69,8 @@ class Server():
     def ping_ip(self, ip_address):
         try:
             self.logger.consoleLogger.debug("Ping {}".format(ip_address))
-            ret = subprocess.check_output(["ping", "-c", "1", ip_address], timeout = 5)
-            if ret.decode('utf-8').find("1 received") == -1:
+            ret = subprocess.check_output(["ping", "-c", "1", ip_address], timeout=5)
+            if ret.decode("utf-8").find("1 received") == -1:
                 self.logger.consoleLogger.warn("Failed to ping {}".format(ip_address))
         except:
             pass
@@ -79,43 +80,65 @@ class Server():
 
         for ip_address, _ in self.logger.socketReceiver.clients:
             server_path = os.path.join(self.log_folder, "clients", str(ip_address))
-            os.makedirs(server_path, exist_ok = True)
-            self.logger.consoleLogger.info("Fetching logs from {}@{}:{} to {}".format(
-                self.user, ip_address, client_path, server_path))
-            process = subprocess.Popen([
-                "rsync", "-e", "ssh -o StrictHostKeyChecking=no", "-tr",
-                "{}@{}:{}".format(self.user, ip_address, client_path), server_path
-            ])
+            os.makedirs(server_path, exist_ok=True)
+            self.logger.consoleLogger.info(
+                "Fetching logs from {}@{}:{} to {}".format(
+                    self.user, ip_address, client_path, server_path
+                )
+            )
+            process = subprocess.Popen(
+                [
+                    "rsync",
+                    "-e",
+                    "ssh -o StrictHostKeyChecking=no",
+                    "-tr",
+                    "{}@{}:{}".format(self.user, ip_address, client_path),
+                    server_path,
+                ]
+            )
             process.wait()
 
     def power_cycle_pi(self):
         self.logger.consoleLogger.warn("Restarting Raspberry Pi...")
-        self.logger.dataLogger.warn({
-            'type': 'Server',
-            'id': SERVER_POWERCYCLE_RPI,
-            'timestamp': time.time(),
-            'event': f'Communication Timeout. Restart Raspberry Pi.'
-        })
+        self.logger.dataLogger.warn(
+            {
+                "type": "Server",
+                "id": SERVER_POWERCYCLE_RPI,
+                "timestamp": time.time(),
+                "event": f"Communication Timeout. Restart Raspberry Pi.",
+            }
+        )
 
         # TODO: Adjust to local setup
         try:
             if self.fallback_power_switch:
                 url = f"http://{self.switch_ip}/control_outlet.htm?outlet{self.switch_id}=1&op=2&submit=Apply"
-                ret = requests.get(url, auth = HTTPBasicAuth(self.switch_username, self.switch_password), timeout = 5)
+                ret = requests.get(
+                    url,
+                    auth=HTTPBasicAuth(self.switch_username, self.switch_password),
+                    timeout=5,
+                )
                 self.logger.consoleLogger.debug(f"Calling {url}")
                 if ret.status_code != 200:
                     self.logger.consoleLogger.warn("Failed to restart Raspberry Pi")
                     self.logger.consoleLogger.warn(f"Got {ret.status_code}")
 
-                    self.logger.dataLogger.warn({
-                        'type': 'Server',
-                        'id': SERVER_POWERCYCLE_RPI_FAILED,
-                        'timestamp': time.time(),
-                        'event': f'Failed to restart Raspberry Pi.'
-                    })
+                    self.logger.dataLogger.warn(
+                        {
+                            "type": "Server",
+                            "id": SERVER_POWERCYCLE_RPI_FAILED,
+                            "timestamp": time.time(),
+                            "event": f"Failed to restart Raspberry Pi.",
+                        }
+                    )
             else:
-                power_cycle(self.switch_id, self.switch_ip, self.logger.consoleLogger, self.switch_username,
-                            self.switch_password)
+                power_cycle(
+                    self.switch_id,
+                    self.switch_ip,
+                    self.logger.consoleLogger,
+                    self.switch_username,
+                    self.switch_password,
+                )
         except:
             traceback.print_exc()
             self.logger.consoleLogger.warn("Failed to restart Raspberry Pi")

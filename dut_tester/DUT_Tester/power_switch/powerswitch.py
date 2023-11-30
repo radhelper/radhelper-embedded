@@ -16,7 +16,7 @@ import typing
 
 import requests
 
-from Trikaneros_Tester.power_switch.error_codes import ErrorCodes
+from DUT_Tester.power_switch.error_codes import ErrorCodes
 
 # Switches status, only used in this module
 __ON = "ON"
@@ -27,17 +27,19 @@ __GLOBAL_LOCK = threading.Lock()
 
 # Check if curl is available
 try:
-    subprocess.call(["curl", "--help"], stdout = subprocess.PIPE)
+    subprocess.call(["curl", "--help"], stdout=subprocess.PIPE)
 except OSError:
     raise OSError("CURL is not available, please install curl before using this module")
 
 
-def _lindy_switch(status: str,
-                  switch_port: int,
-                  switch_ip: str,
-                  logger: logging.Logger,
-                  username = "snmp",
-                  password = '1234') -> ErrorCodes:
+def _lindy_switch(
+    status: str,
+    switch_port: int,
+    switch_ip: str,
+    logger: logging.Logger,
+    username="snmp",
+    password="1234",
+) -> ErrorCodes:
     """Lindy switch reboot rules
     :param status: ON or OFF
     :param switch_port: port to reboot
@@ -60,7 +62,7 @@ def _lindy_switch(status: str,
     }
 
     str_token = f"{username}:{password}"
-    base64_token = base64.b64encode(str_token.encode('ascii')).decode('ascii')
+    base64_token = base64.b64encode(str_token.encode("ascii")).decode("ascii")
 
     headers = {
         "Host": switch_ip,
@@ -78,24 +80,29 @@ def _lindy_switch(status: str,
     print(headers)
     default_string = "Could not change Lindy IP switch status, portNumber:"
     try:
-        requests_status = requests.post(url, data = json.dumps(payload), headers = headers)
+        requests_status = requests.post(url, data=json.dumps(payload), headers=headers)
         requests_status.raise_for_status()
         reboot_status = ErrorCodes.SUCCESS
     except requests.exceptions.HTTPError as http_error:
         reboot_status = ErrorCodes.HTTP_ERROR
-        logger.error(f"{default_string} {switch_port} status:{reboot_status} switchIP:{switch_ip} error:{http_error}")
+        logger.error(
+            f"{default_string} {switch_port} status:{reboot_status} switchIP:{switch_ip} error:{http_error}"
+        )
     except requests.exceptions.ConnectionError as connection_error:
         reboot_status = ErrorCodes.CONNECTION_ERROR
         logger.error(
-            f"{default_string} {switch_port} status:{reboot_status} switchIP:{switch_ip} error:{connection_error}")
+            f"{default_string} {switch_port} status:{reboot_status} switchIP:{switch_ip} error:{connection_error}"
+        )
     except requests.exceptions.Timeout as timeout_error:
         reboot_status = ErrorCodes.TIMEOUT_ERROR
         logger.error(
-            f"{default_string} {switch_port} status:{reboot_status} switchIP:{switch_ip} error:{timeout_error}")
+            f"{default_string} {switch_port} status:{reboot_status} switchIP:{switch_ip} error:{timeout_error}"
+        )
     except requests.exceptions.RequestException as general_error:
         reboot_status = ErrorCodes.GENERAL_ERROR
         logger.error(
-            f"{default_string} {switch_port} status:{reboot_status} switchIP:{switch_ip} error:{general_error}")
+            f"{default_string} {switch_port} status:{reboot_status} switchIP:{switch_ip} error:{general_error}"
+        )
     return reboot_status
 
 
@@ -178,13 +185,15 @@ def reboot_machine(
     :return: a tuple containing the outcomes of the OFF and ON commands
     """
     logger = logging.getLogger(f"{logger_name}.{__name__}")
-    logger.info(f"Rebooting machine, IP:{address} switch_IP:{switch_ip} switch_port:{switch_port}")
+    logger.info(
+        f"Rebooting machine, IP:{address} switch_IP:{switch_ip} switch_port:{switch_port}"
+    )
     off_status = _select_command_on_switch(
-        status = __OFF,
-        switch_model = switch_model,
-        switch_port = switch_port,
-        switch_ip = switch_ip,
-        logger = logger,
+        status=__OFF,
+        switch_model=switch_model,
+        switch_port=switch_port,
+        switch_ip=switch_ip,
+        logger=logger,
     )
     if thread_event:
         thread_event.wait(rebooting_sleep)
@@ -192,16 +201,18 @@ def reboot_machine(
         time.sleep(rebooting_sleep)
 
     on_status = _select_command_on_switch(
-        status = __ON,
-        switch_model = switch_model,
-        switch_port = switch_port,
-        switch_ip = switch_ip,
-        logger = logger,
+        status=__ON,
+        switch_model=switch_model,
+        switch_port=switch_port,
+        switch_ip=switch_ip,
+        logger=logger,
     )
     return off_status, on_status
 
 
-def turn_machine_on(address: str, switch_model: str, switch_port: int, switch_ip: str, logger_name: str) -> ErrorCodes:
+def turn_machine_on(
+    address: str, switch_model: str, switch_port: int, switch_ip: str, logger_name: str
+) -> ErrorCodes:
     """Public function to turn ON a machine
     :param address: Address of the machine that is being turned ON
     :param switch_model: model of the switch. Supported now default and lindy
@@ -211,17 +222,21 @@ def turn_machine_on(address: str, switch_model: str, switch_port: int, switch_ip
     :return: ErrorCodes status
     """
     logger = logging.getLogger(f"{logger_name}.{__name__}")
-    logger.info(f"Turning ON machine:{address} switch_IP:{switch_ip} switch_port:{switch_port}")
+    logger.info(
+        f"Turning ON machine:{address} switch_IP:{switch_ip} switch_port:{switch_port}"
+    )
     return _select_command_on_switch(
-        status = __ON,
-        switch_model = switch_model,
-        switch_port = switch_port,
-        switch_ip = switch_ip,
-        logger = logger,
+        status=__ON,
+        switch_model=switch_model,
+        switch_port=switch_port,
+        switch_ip=switch_ip,
+        logger=logger,
     )
 
 
-def turn_machine_off(address: str, switch_model: str, switch_port: int, switch_ip: str, logger_name: str) -> ErrorCodes:
+def turn_machine_off(
+    address: str, switch_model: str, switch_port: int, switch_ip: str, logger_name: str
+) -> ErrorCodes:
     """Public function to turn OFF a machine
     :param address: Address of the machine that is being turned OFF
     :param switch_model: model of the switch. Supported now default and lindy
@@ -231,22 +246,30 @@ def turn_machine_off(address: str, switch_model: str, switch_port: int, switch_i
     :return: ErrorCodes status
     """
     logger = logging.getLogger(f"{logger_name}.{__name__}")
-    logger.info(f"Turning OFF machine:{address} switch_IP:{switch_ip} switch_port:{switch_port}")
+    logger.info(
+        f"Turning OFF machine:{address} switch_IP:{switch_ip} switch_port:{switch_port}"
+    )
     return _select_command_on_switch(
-        status = __OFF,
-        switch_model = switch_model,
-        switch_port = switch_port,
-        switch_ip = switch_ip,
-        logger = logger,
+        status=__OFF,
+        switch_model=switch_model,
+        switch_port=switch_port,
+        switch_ip=switch_ip,
+        logger=logger,
     )
 
 
-def power_cycle(select_power_switch, power_IP, logger, username = "snmp", password = '1234'):
+def power_cycle(
+    select_power_switch, power_IP, logger, username="snmp", password="1234"
+):
     return_code = 0
-    return_code = _lindy_switch("OFF", select_power_switch, power_IP, logger, username, password)
+    return_code = _lindy_switch(
+        "OFF", select_power_switch, power_IP, logger, username, password
+    )
     logger.info(f"Powering down port {select_power_switch}...")
     time.sleep(20)
-    return_code = _lindy_switch("ON", select_power_switch, power_IP, logger, username, password)
+    return_code = _lindy_switch(
+        "ON", select_power_switch, power_IP, logger, username, password
+    )
     logger.info(f"Powering up port {select_power_switch}...")
     time.sleep(20)
     return return_code

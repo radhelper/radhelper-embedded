@@ -1,11 +1,10 @@
 from threading import Event, Thread
 
-from Trikaneros_Tester.log_id import *
-from Trikaneros_Tester.util import Logger
+from DUT_Tester.log_id import *
+from DUT_Tester.util import Logger
 
 
 class LogMonitor(Thread):
-
     def __init__(
         self,
         logger: Logger,
