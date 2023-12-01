@@ -2,6 +2,8 @@ import argparse
 import os
 import sys
 import traceback
+import toml
+import DUT_Tester.global_vars as global_vars
 
 
 def in_venv():
@@ -167,7 +169,7 @@ def main():
         dest="ip_address",
         type=str,
         help="IP address to listen for incoming connections.",
-        default="0.0.0.0",
+        default="192.168.0.1",
     )
 
     parser_server.add_argument(
@@ -177,7 +179,7 @@ def main():
         dest="user",
         type=str,
         help="User to connect to via SSH to download log files.",
-        default="trikarenos",
+        default="pihub",
     )
 
     parser_server.add_argument(
@@ -197,6 +199,7 @@ def main():
         type=float,
         help="Interval in minutes to fetch the log file.",
         default=10,
+        #default=0.5,
     )
 
     parser_server.add_argument(
@@ -210,6 +213,12 @@ def main():
 
     # Parse arguments and start client or server
     args = parser.parse_args()
+
+    # Get UART info
+    global_vars.uart_info = get_uart_info('./UART_config.toml')
+    #print(global_vars.uart_info)
+
+    # Start process (either Server or Client)
     args.func(args)
 
 
@@ -218,7 +227,6 @@ def start_server(args):
 
     server = Server(args=args)
     server.start()
-
 
 def start_client(args):
     from DUT_Tester.Client import Client
@@ -233,6 +241,9 @@ def start_client(args):
         traceback.print_exc()
         os.system("sudo kill -9 %d" % os.getpid())
 
+def get_uart_info(config_file):
+    config = toml.load(config_file)
+    return config
 
 if __name__ == "__main__":
     main()

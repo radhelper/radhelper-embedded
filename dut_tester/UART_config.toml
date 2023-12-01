@@ -1,0 +1,26 @@
+# config.toml
+
+number_conected_uarts = 2
+
+[[uart]]
+name = "uart0"
+tty = "/dev/ttyACM0"
+baudrate=115200
+index = 0
+power_port_IP = '0.0.0.0'
+
+[[uart]]
+name = "uart1"
+tty = "/dev/ttyACM2"
+baudrate=115200
+index = 0
+power_port_IP = '0.0.0.0'
+
+[[uart]]
+name = "uart2"
+tty = "/dev/ttyACM4"
+baudrate=115200
+index = 0
+power_port_IP = '0.0.0.0'
+
+#scp -r username@rpi_ip_address:/path/to/folder /path/on/host

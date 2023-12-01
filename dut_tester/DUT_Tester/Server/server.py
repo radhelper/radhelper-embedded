@@ -45,7 +45,7 @@ class Server:
         signal.signal(signal.SIGINT, self.handler)
 
         self.log_monitor.start()
-
+        print("Started Server ... ")
         # self.power_cycle_pi()
         # self.logger.socketReceiver.last_message = time.time()
 
@@ -55,9 +55,10 @@ class Server:
                     self.power_cycle_pi()
                     self.logger.socketReceiver.last_message = time.time()
 
-            if time.time() - self.last_fetch > self.log_fetch_interval * 60:
-                self.copy_logs()
-                self.last_fetch = time.time()
+            # if time.time() - self.last_fetch > self.log_fetch_interval * 60:
+            #     print("copying logs ...")
+            #     self.copy_logs()
+            #     self.last_fetch = time.time()
 
             # WIESEP: Hack ping the raspberry pi due to arp issues
             self.ping_ip(self.client_ip)
@@ -77,6 +78,7 @@ class Server:
 
     def copy_logs(self):
         client_path = self.dir
+        #print("client path: ", client_path)
 
         for ip_address, _ in self.logger.socketReceiver.clients:
             server_path = os.path.join(self.log_folder, "clients", str(ip_address))

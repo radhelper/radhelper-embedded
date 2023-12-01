@@ -18,7 +18,7 @@ from DUT_Tester.power_switch.error_codes import ErrorCodes
 import DUT_Tester.power_switch.powerswitch as ps
 
 SERIAL_TIMEOUT = 20
-MIN_FRAME_INTERVAL = 2
+MIN_FRAME_INTERVAL = 0.5
 
 
 class UARTMonitor(Thread):
@@ -27,6 +27,7 @@ class UARTMonitor(Thread):
         logger: Logger,
         event_heartbeat: Event,
         event_stop: Event,
+        name = "", 
         freq=100,
         tty="/dev/ttyUSB0",
         baudrate=115200,
@@ -37,6 +38,7 @@ class UARTMonitor(Thread):
         self.event_stop = event_stop
         self.baudrate = baudrate
         self.tty = tty
+        self.name = name
 
         self.max_buffer_size = 524  ## Equals to 2 maxed frames
         self.frame_package_size = 6
@@ -55,7 +57,7 @@ class UARTMonitor(Thread):
     def run(self):
         self.event_heartbeat.set()
 
-        self.logger.consoleLogger.info(f"Started UART Monitor Thread. [{os.getpid()}]")
+        self.logger.consoleLogger.info(f'Started UART "{self.name}" Monitor Thread. [{os.getpid()}]')
 
         self.serial = self.PI.serial_open(self.tty, self.baudrate)
 
@@ -76,14 +78,14 @@ class UARTMonitor(Thread):
                 # don't log unless is a complete frame or abandoned frame
                 self.logger.dataLogger.info(
                     {
-                        "type": "Serial",
+                        "type": "Serial" + self.name,
                         "id": CLIENT_SERIAL_FRAME_RX,
                         "timestamp": time.time(),
                         "data": frame_buffer_hex,
                     }
                 )
                 self.logger.consoleLogger.info(
-                    "[Serial] " + frame_buffer_hex.rstrip("\n")
+                    "[Serial] " + self.name + " " + frame_buffer_hex.rstrip("\n")
                 )
 
                 #### process the received loop and check for frames
@@ -110,6 +112,7 @@ class UARTMonitor(Thread):
         partial_frame_buffer = bytearray()
 
         while not self.event_stop.is_set():
+            self.event_heartbeat.set()
             data_avaiable = self.PI.serial_data_available(self.serial)
 
             if data_avaiable:
@@ -133,7 +136,7 @@ class UARTMonitor(Thread):
                 self.logger.consoleLogger.warn("Serial Communication Timeout!")
                 self.logger.dataLogger.info(
                     {
-                        "type": "Serial",
+                        "type": "Serial"+ self.name,
                         "id": CLIENT_SERIAL_TIMEOUT,
                         "timestamp": time.time(),
                         "event": "Serial Timeout",
@@ -212,7 +215,7 @@ class UARTMonitor(Thread):
         if frame_processed_successfully:
             self.logger.dataLogger.info(
                 {
-                    "type": "Serial",
+                    "type": "Serial"+ self.name,
                     "id": CLIENT_SERIAL_FRAME_RX,
                     "timestamp": time.time(),
                     "data": buffer,
@@ -221,7 +224,7 @@ class UARTMonitor(Thread):
         else:
             self.logger.dataLogger.info(
                 {
-                    "type": "Serial",
+                    "type": "Serial"+ self.name,
                     "id": CLIENT_SERIAL_FRAME_ERROR,
                     "timestamp": time.time(),
                     "event": "Frame incomplete",
@@ -251,7 +254,7 @@ class UARTMonitor(Thread):
 
         self.logger.dataLogger.info(
             {
-                "type": "Serial",
+                "type": "Serial" + self.name,
                 "frame type": frame_id,
                 "CRC check": crc_check,
                 "Payload": payload_hex,

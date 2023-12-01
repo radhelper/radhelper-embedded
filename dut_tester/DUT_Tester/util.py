@@ -72,13 +72,16 @@ class Logger:
                  ip_address: str = '127.0.0.1',
                  port: int = logging.handlers.DEFAULT_TCP_LOGGING_PORT,
                  verbose = 0,
+                 name_specifier = "",
                  log_rotate_interval = 10):
+
+        self.name = name_specifier
 
         # Setup File logger
         if not os.path.exists(log_folder):
             os.makedirs(log_folder)
 
-        filename = mode + '_' + time.strftime("%Y%m%d-%H%M%S") + '.log' 
+        filename = mode + '_' + name_specifier + '_' + time.strftime("%Y%m%d-%H%M%S") + '.log' 
 
         self.logfile = os.path.join(log_folder, filename)
         print(f"Store logs to {self.logfile}.")
@@ -100,7 +103,9 @@ class Logger:
         elif verbose >= 3:
             self.streamHandler.setLevel(logging.DEBUG)
 
-        self.dataLogger: logging.Logger = logging.getLogger('Logger')
+        # changed this to specify the name of the logger
+        self.dataLogger: logging.Logger = logging.getLogger(self.name)
+        #self.dataLogger: logging.Logger = logging.getLogger('Logger')
         self.dataLogger.addHandler(self.fileHandler)
         self.dataLogger.addHandler(self.streamHandler)
         self.dataLogger.setLevel(logging.DEBUG)
