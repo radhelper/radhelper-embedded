@@ -82,26 +82,6 @@ class UARTMonitor(Thread):
 
                     decoded_as_frame = self.check_for_frame(d)
 
-                    if decoded_as_frame:
-                        self.logger.dataLogger.info(
-                            {
-                                "type": "Serial",
-                                "id": CLIENT_SERIAL_FRAME_RX,
-                                "timestamp": time.time(),
-                                "data": d,
-                            }
-                        )
-                    else:
-                        self.logger.consoleLogger.warn("Frame incomplete!")
-                        self.logger.dataLogger.info(
-                            {
-                                "type": "Serial",
-                                "id": CLIENT_SERIAL_FRAME_ERROR,
-                                "timestamp": time.time(),
-                                "event": "Frame incomplete",
-                            }
-                        )
-
             if (
                 time.time() - self.last_serial > SERIAL_TIMEOUT
                 and not self.serial_timeout
@@ -131,6 +111,7 @@ class UARTMonitor(Thread):
         frame_buffer = bytearray()
         in_frame = False
         frame_processed_successfully = False
+        frame_fully_received = False
         payload_length = 0
         bytes_read = 0
         buffer_size = len(buffer) - 1
@@ -143,9 +124,11 @@ class UARTMonitor(Thread):
             elif in_frame:
                 frame_buffer.append(byte)
                 bytes_read += 1
-                print(buffer_size, bytes_read)
                 if bytes_read == 2:  # Assuming the second byte is payload_length
                     payload_length = byte
+                    if buffer_size < (payload_length + 6):
+                        frame_fully_received = True
+                        print("Full Frame")
 
                 if (
                     bytes_read > 2 and bytes_read == payload_length + 5
@@ -167,6 +150,25 @@ class UARTMonitor(Thread):
                         "Frame error: Incomplete frame at end of buffer"
                     )
                     frame_processed_successfully = False
+
+        if frame_processed_successfully:
+            self.logger.dataLogger.info(
+                {
+                    "type": "Serial",
+                    "id": CLIENT_SERIAL_FRAME_RX,
+                    "timestamp": time.time(),
+                    "data": buffer,
+                }
+            )
+        else:
+            self.logger.dataLogger.info(
+                {
+                    "type": "Serial",
+                    "id": CLIENT_SERIAL_FRAME_ERROR,
+                    "timestamp": time.time(),
+                    "event": "Frame incomplete",
+                }
+            )
 
         return frame_processed_successfully
 
@@ -190,13 +192,6 @@ class UARTMonitor(Thread):
 
         if crc_check is False:
             self.logger.consoleLogger.info(f"CRC Check failed!")
-
-        # print(f"Header: {hex(header)}")
-        # print(f"Payload Length: {hex(payload_length)}")
-        # print(f"Frame ID: {hex(frame_id)}")
-        # print(f"Payload: {payload_hex}")
-        # print(f"CRC: {hex(crc)}")
-        # print(f"Tail: {hex(tail)}")
 
         self.logger.dataLogger.info(
             {
