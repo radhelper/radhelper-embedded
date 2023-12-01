@@ -22,6 +22,7 @@ dependencies = [
 'openocd',
 'pi-ina219',
 'requests',
+'toml',
 ]
 [tool.setuptools]
 packages = ['DUT_Tester']
