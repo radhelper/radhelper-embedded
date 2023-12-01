@@ -66,28 +66,28 @@ class UARTMonitor(Thread):
             self.event_heartbeat.set()
 
             frame_buffer = self.read_frame_from_serial()  # This function is blocking
+
             if frame_buffer is not None:
                 try:
                     frame_buffer_hex = frame_buffer.decode("utf-8")
                 except:
-                    frame_buffer_hex = str(binascii.hexlify(d), "ascii")
+                    frame_buffer_hex = str(binascii.hexlify(frame_buffer), "ascii")
 
                 # don't log unless is a complete frame or abandoned frame
-                # self.logger.dataLogger.info(
-                #     {
-                #         "type": "Serial",
-                #         "id": CLIENT_SERIAL_FRAME_RX,
-                #         "timestamp": time.time(),
-                #         "data": frame_buffer_hex,
-                #     }
-                # )
+                self.logger.dataLogger.info(
+                    {
+                        "type": "Serial",
+                        "id": CLIENT_SERIAL_FRAME_RX,
+                        "timestamp": time.time(),
+                        "data": frame_buffer_hex,
+                    }
+                )
                 self.logger.consoleLogger.info(
                     "[Serial] " + frame_buffer_hex.rstrip("\n")
                 )
 
                 #### process the received loop and check for frames
                 # would be good to at least check for double frames...
-
                 self.check_for_frame(frame_buffer)
 
             else:
@@ -105,10 +105,11 @@ class UARTMonitor(Thread):
     # max buffer size to prevent infinite read
     # log every received buffer
     def read_frame_from_serial(self):
-        partial_frame_buffer = bytearray()
         frame_received = False
+        # partial_frame_buffer = None
+        partial_frame_buffer = bytearray()
 
-        while True:
+        while not self.event_stop.is_set():
             data_avaiable = self.PI.serial_data_available(self.serial)
 
             if data_avaiable:
@@ -119,8 +120,9 @@ class UARTMonitor(Thread):
 
                 # Check for buffer overflow
                 if len(partial_frame_buffer) > self.max_buffer_size:
-                    # Handle buffer overflow (e.g., clear buffer, log error)
-                    break
+                    self.logger.consoleLogger.warn("Receiver buffer overflow!")
+                    ## TODO: SHOULD WE ADD A DATA LOG FOR THE OVERFLOW BUFF?
+                    return partial_frame_buffer
 
             # Check for dead transmitter
             if (
@@ -144,11 +146,16 @@ class UARTMonitor(Thread):
 
                 break
             # if not dead transmiter, means the frame transmission just ended
-            elif time.time() - self.last_serial > MIN_FRAME_INTERVAL:
+            elif (
+                time.time() - self.last_serial > MIN_FRAME_INTERVAL
+                and len(partial_frame_buffer) > self.frame_package_size
+            ):
                 frame_received = True
                 break
 
             time.sleep(1 / self.freq)
+
+        # return partial_frame_buffer
 
         if frame_received == True:
             return partial_frame_buffer
@@ -178,6 +185,7 @@ class UARTMonitor(Thread):
                     if buffer_size == (payload_length + self.frame_package_size):
                         frame_fully_received = True
                         # this might be useless now... or use it to check for double payload
+                        # TODO: check for double frames based on size.
 
                 if (
                     bytes_read > 3
