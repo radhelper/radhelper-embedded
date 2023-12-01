@@ -169,7 +169,7 @@ def main():
         dest="ip_address",
         type=str,
         help="IP address to listen for incoming connections.",
-        default="192.168.0.1",
+        default="0.0.0.0",
     )
 
     parser_server.add_argument(
@@ -179,7 +179,7 @@ def main():
         dest="user",
         type=str,
         help="User to connect to via SSH to download log files.",
-        default="pihub",
+        default="trikarenos",
     )
 
     parser_server.add_argument(
@@ -199,7 +199,6 @@ def main():
         type=float,
         help="Interval in minutes to fetch the log file.",
         default=10,
-        #default=0.5,
     )
 
     parser_server.add_argument(

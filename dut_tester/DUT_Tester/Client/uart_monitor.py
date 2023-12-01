@@ -17,7 +17,7 @@ from DUT_Tester.crc_table import crcTable
 from DUT_Tester.power_switch.error_codes import ErrorCodes
 import DUT_Tester.power_switch.powerswitch as ps
 
-SERIAL_TIMEOUT = 20
+SERIAL_TIMEOUT = 5
 MIN_FRAME_INTERVAL = 0.5
 
 
@@ -66,7 +66,7 @@ class UARTMonitor(Thread):
         while not self.event_stop.is_set():
             # Set heartbeat signal
             self.event_heartbeat.set()
-
+            print("print2")
             frame_buffer = self.read_frame_from_serial()  # This function is blocking
 
             if frame_buffer is not None:
@@ -78,7 +78,7 @@ class UARTMonitor(Thread):
                 # don't log unless is a complete frame or abandoned frame
                 self.logger.dataLogger.info(
                     {
-                        "type": "Serial" + self.name,
+                        "type": "Serial " + self.name,
                         "id": CLIENT_SERIAL_FRAME_RX,
                         "timestamp": time.time(),
                         "data": frame_buffer_hex,
@@ -114,7 +114,7 @@ class UARTMonitor(Thread):
         while not self.event_stop.is_set():
             self.event_heartbeat.set()
             data_avaiable = self.PI.serial_data_available(self.serial)
-
+            print("print1")
             if data_avaiable:
                 self.serial_timeout = False
                 self.last_serial = time.time()
@@ -136,7 +136,7 @@ class UARTMonitor(Thread):
                 self.logger.consoleLogger.warn("Serial Communication Timeout!")
                 self.logger.dataLogger.info(
                     {
-                        "type": "Serial"+ self.name,
+                        "type": "Serial "+ self.name,
                         "id": CLIENT_SERIAL_TIMEOUT,
                         "timestamp": time.time(),
                         "event": "Serial Timeout",
@@ -146,7 +146,7 @@ class UARTMonitor(Thread):
                 ## If dead: power cycle the DUT
                 # ps.power_cycle("192.168.0.1", 1)
                 frame_received = False
-
+                print("power cycle!")
                 break
             # if not dead transmiter, means the frame transmission just ended
             elif (
@@ -215,7 +215,7 @@ class UARTMonitor(Thread):
         if frame_processed_successfully:
             self.logger.dataLogger.info(
                 {
-                    "type": "Serial"+ self.name,
+                    "type": "Serial "+ self.name,
                     "id": CLIENT_SERIAL_FRAME_RX,
                     "timestamp": time.time(),
                     "data": buffer,
@@ -224,7 +224,7 @@ class UARTMonitor(Thread):
         else:
             self.logger.dataLogger.info(
                 {
-                    "type": "Serial"+ self.name,
+                    "type": "Serial "+ self.name,
                     "id": CLIENT_SERIAL_FRAME_ERROR,
                     "timestamp": time.time(),
                     "event": "Frame incomplete",
@@ -254,7 +254,7 @@ class UARTMonitor(Thread):
 
         self.logger.dataLogger.info(
             {
-                "type": "Serial" + self.name,
+                "type": "Serial " + self.name,
                 "frame type": frame_id,
                 "CRC check": crc_check,
                 "Payload": payload_hex,

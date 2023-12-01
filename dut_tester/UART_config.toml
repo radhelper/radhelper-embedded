@@ -4,14 +4,14 @@ number_conected_uarts = 2
 
 [[uart]]
 name = "uart0"
-tty = "/dev/ttyACM0"
+tty = "/dev/ttyDUT0"
 baudrate=115200
 index = 0
 power_port_IP = '0.0.0.0'
 
 [[uart]]
 name = "uart1"
-tty = "/dev/ttyACM2"
+tty = "/dev/ttyDUT1"
 baudrate=115200
 index = 0
 power_port_IP = '0.0.0.0'
