@@ -65,7 +65,9 @@ class UARTMonitor(Thread):
             # Set heartbeat signal
             self.event_heartbeat.set()
 
-            frame_buffer = self.read_frame_from_serial()  # This function is blocking
+            frame_buffer = (
+                self.read_frame_from_serial()
+            )  # This function is blocking for at least SERIAL_TIMEOUT and at max SERIAL_TIMEOUT
 
             if frame_buffer is not None:
                 try:
