@@ -25,6 +25,8 @@ dependencies = [
 'toml',
 'ping3', 
 'paramiko',
+'icmplib', 
+'scapy',
 ]
 [tool.setuptools]
 packages = ['DUT_Tester']

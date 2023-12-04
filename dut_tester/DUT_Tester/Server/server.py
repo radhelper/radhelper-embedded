@@ -1,4 +1,4 @@
-from ping3 import ping
+import subprocess
 import paramiko
 import socket
 import time
@@ -57,20 +57,18 @@ class StateMachine:
     def toString(self):
         return "current state: " + self.current_state + ", output: " + str(self.output)
 
-
 def ping_pi(ip_address):
     try:
-        delay = ping(ip_address)
-        if delay is None:
-            # print(f"{ip_address} is down or not responding.")
-            return False
-        else:
-            # print(f"{ip_address} is alive, delay = {delay} ms")
+        response = subprocess.run(['ping', '-c', '1', ip_address], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if response.returncode == 0:
+            #print(f"{ip_address} is alive")
             return True
+        else:
+            #print(f"{ip_address} is down or not responding.")
+            return False
     except Exception as e:
         print(f"Error pinging {ip_address}: {e}")
         return False
-
 
 def ssh_connect(ip_address, username, password):
     try:
@@ -97,20 +95,6 @@ def is_ssh_connection_active(client, host, port, username, password, ssh_timeout
         # print(f"Error connecting to {ip_address} via SSH: {e}")
         # If there is an exception, return False
         return False
-
-
-# def run_command_over_ssh(client, command):
-#         try:
-#             stdin, stdout, stderr = client.exec_command(command)
-#             stdout_str = stdout.read().decode('utf-8')
-#             stderr_str = stderr.read().decode('utf-8')
-#             print('Raspberry-pi output:', stdout_str, end='\n')
-#             if not (stderr_str == ''):
-#                 print('Errors:', stderr_str)
-
-#         except Exception as e:
-#             print(f"Error executing command {command} on remote host: {e}")
-
 
 def run_command_over_ssh(ssh_client, command):
     stdin, stdout, stderr = ssh_client.exec_command(command)
