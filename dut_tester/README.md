@@ -26,7 +26,14 @@ $> python -m venv .venv
 ## On the Client (Raspberry Pi)
 The Raspberry Pi automatically enters the `/opt/DUT_Tester` directory and activates the virtual python environmnt.
 
-1. Configure the IP address on the SD-card by modififying `ip=192.168.1.XX` in `cmdline.txt` on the boot partition of the SD card.
+1. Configure the IP address on the SD-card by modififying the lines:
+   ```bash
+        # Example static IP configuration:
+        interface eth0
+        static ip_address=192.168.0.32
+   ```
+   in `/etc/dhcpcd.conf` on the boot partition of the SD card.
+   
 2. Boot the Raspberry Pi, connect via SSH.
     ```
     Username: trikarenos
@@ -40,7 +47,7 @@ The Raspberry Pi automatically enters the `/opt/DUT_Tester` directory and activa
     # On the Raspberry Pi
     $> nano ~/.ssh/authorized_keys
     ```
-5. Modify the IP address of the server
+4. Modify the IP address of the server
     ```sh
     # Modify the ExecStart=/opt/DUT_Tester/.venv/bin/python -m DUT_Tester client <ip_address> ../trikaneros_radiation_app
     $> sudo nano /etc/systemd/system/trikarenos_tester.service

@@ -50,11 +50,14 @@ class UARTMonitor(Thread):
 
         self.last_serial = time.time()
 
+        self.reboot_start_time = time.time() - 10
+
         # self.DUT_rebooting = False
 
         self.serial = None
 
         self.serial_timeout = False
+        self.device_is_off = True
 
         self.PI = pigpio.pi()
 
@@ -68,6 +71,8 @@ class UARTMonitor(Thread):
         self.serial = self.PI.serial_open(self.tty, self.baudrate)
 
         self.last_serial = time.time()
+
+        self.power_up_DUT("192.168.0.1", 1)
 
         while not self.event_stop.is_set():
             # Set heartbeat signal
@@ -95,11 +100,12 @@ class UARTMonitor(Thread):
                 self.logger.consoleLogger.info(
                     "[Serial] " + self.name + " " + frame_buffer_hex.rstrip("\n")
                 )
-
                 #### process the received loop and check for frames
                 # would be good to at least check for double frames...
                 self.check_for_frame(frame_buffer)
 
+            else:  ## If its not getting anything, try powering up
+                self.power_up_DUT("192.168.0.1", 1)
             # if self.DUT_rebooting == True:
             #     break  # quit thread
 
@@ -124,9 +130,9 @@ class UARTMonitor(Thread):
             data_avaiable = self.PI.serial_data_available(self.serial)
             if data_avaiable:
                 self.serial_timeout = False
-                self.last_serial = time.time()
                 len_d, d = self.PI.serial_read(self.serial)
                 if len_d > 0:
+                    self.last_serial = time.time()
                     partial_frame_buffer += d
                 else:
                     print(partial_frame_buffer)
@@ -153,16 +159,18 @@ class UARTMonitor(Thread):
                     }
                 )
 
-                self.reboot_DUT()
+                # Power down DUT...
+                self.power_down_DUT("192.168.0.1", 1)
 
                 frame_received = False
                 serial_port_busy = False
             # if not dead transmiter, means the frame transmission just ended
-            elif (
-                time.time() - self.last_serial > MIN_FRAME_INTERVAL
-                and len(partial_frame_buffer) > self.frame_package_size
-            ):
-                frame_received = True
+            elif time.time() - self.last_serial > MIN_FRAME_INTERVAL:
+                if (
+                    len(partial_frame_buffer) > self.frame_package_size
+                    and len(partial_frame_buffer) > 0
+                ):
+                    frame_received = True
                 serial_port_busy = False
             else:
                 serial_port_busy = True
@@ -242,16 +250,6 @@ class UARTMonitor(Thread):
                 }
             )
 
-    def reboot_DUT(self):
-        # Close serial port
-        # self.logger.consoleLogger.info(f"Killing uart connection.")
-        # self.PI.serial_close(self.serial)
-
-        # self.DUT_rebooting = True
-        self.logger.consoleLogger.info(f"Power Cycling DUT.")
-        # Power cycle DUT
-        # ps.power_cycle("192.168.0.1", 1)
-
     def decode_frame(self, frame_bytes):
         # Desconstructing the frame
         header = frame_bytes[0]
@@ -275,9 +273,7 @@ class UARTMonitor(Thread):
         if crc_check is False:
             self.logger.consoleLogger.info(f"CRC Check failed!")
         else:
-            print(type(payload))
             data = parse_payload(payload, frame_id)
-            print(data)
 
         self.logger.dataLogger.info(
             {
@@ -298,3 +294,30 @@ class UARTMonitor(Thread):
             remainder = crcTable[data] ^ (remainder << 8) & 0xFFFF
 
         return crc_value == (remainder ^ FINAL_XOR_VALUE)
+
+    def power_down_DUT(self, select_power_switch, power_IP):
+        return_code = 0
+        # return_code = ps._lindy_switch("OFF", select_power_switch, power_IP)
+
+        self.device_is_off = True
+
+        self.reboot_start_time = time.time()
+
+        self.logger.consoleLogger.warn(
+            f"Powering down {select_power_switch} at {power_IP}:: {return_code}"
+        )
+
+    def power_up_DUT(self, select_power_switch, power_IP):
+        return_code = 0
+
+        if (time.time() > self.reboot_start_time + 10) and self.device_is_off == True:
+            # print(self.reboot_start_time, time.time())
+            # return_code = ps._lindy_switch("ON", select_power_switch, power_IP)
+
+            self.logger.consoleLogger.warn(
+                f"Powering up {select_power_switch} at {power_IP}:: {return_code}"
+            )
+            self.device_is_off = False
+
+        if time.time() > self.reboot_start_time + 20:
+            self.serial_timeout = False

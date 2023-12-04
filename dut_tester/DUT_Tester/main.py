@@ -179,7 +179,7 @@ def main():
         dest="user",
         type=str,
         help="User to connect to via SSH to download log files.",
-        default="trikarenos",
+        default="pihub",
     )
 
     parser_server.add_argument(
@@ -214,8 +214,8 @@ def main():
     args = parser.parse_args()
 
     # Get UART info
-    global_vars.uart_info = get_uart_info('./UART_config.toml')
-    #print(global_vars.uart_info)
+    global_vars.uart_info = get_uart_info("./UART_config.toml")
+    # print(global_vars.uart_info)
 
     # Start process (either Server or Client)
     args.func(args)
@@ -226,6 +226,7 @@ def start_server(args):
 
     server = Server(args=args)
     server.start()
+
 
 def start_client(args):
     from DUT_Tester.Client import Client
@@ -240,9 +241,11 @@ def start_client(args):
         traceback.print_exc()
         os.system("sudo kill -9 %d" % os.getpid())
 
+
 def get_uart_info(config_file):
     config = toml.load(config_file)
     return config
+
 
 if __name__ == "__main__":
     main()

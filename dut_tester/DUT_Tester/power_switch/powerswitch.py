@@ -6,9 +6,7 @@ public functions are reboot_machine turn_machine_on.
 
 import base64
 import json
-import logging
 import subprocess
-import threading
 import time
 
 import requests
@@ -30,7 +28,6 @@ def _lindy_switch(
     status: str,
     switch_port: int,
     switch_ip: str,
-    logger: logging.Logger,
     username="snmp",
     password="1234",
 ) -> ErrorCodes:
@@ -79,24 +76,24 @@ def _lindy_switch(
         reboot_status = ErrorCodes.SUCCESS
     except requests.exceptions.HTTPError as http_error:
         reboot_status = ErrorCodes.HTTP_ERROR
-        logger.error(
-            f"{default_string} {switch_port} status:{reboot_status} switchIP:{switch_ip} error:{http_error}"
-        )
+        # logger.consoleLogger.error(
+        #     f"{default_string} {switch_port} status:{reboot_status} switchIP:{switch_ip} error:{http_error}"
+        # )
     except requests.exceptions.ConnectionError as connection_error:
         reboot_status = ErrorCodes.CONNECTION_ERROR
-        logger.error(
-            f"{default_string} {switch_port} status:{reboot_status} switchIP:{switch_ip} error:{connection_error}"
-        )
+        # logger.consoleLogger.error(
+        #     f"{default_string} {switch_port} status:{reboot_status} switchIP:{switch_ip} error:{connection_error}"
+        # )
     except requests.exceptions.Timeout as timeout_error:
         reboot_status = ErrorCodes.TIMEOUT_ERROR
-        logger.error(
-            f"{default_string} {switch_port} status:{reboot_status} switchIP:{switch_ip} error:{timeout_error}"
-        )
+        # logger.consoleLogger.error(
+        #     f"{default_string} {switch_port} status:{reboot_status} switchIP:{switch_ip} error:{timeout_error}"
+        # )
     except requests.exceptions.RequestException as general_error:
         reboot_status = ErrorCodes.GENERAL_ERROR
-        logger.error(
-            f"{default_string} {switch_port} status:{reboot_status} switchIP:{switch_ip} error:{general_error}"
-        )
+        # logger.consoleLogger.error(
+        #     f"{default_string} {switch_port} status:{reboot_status} switchIP:{switch_ip} error:{general_error}"
+        # )
     return reboot_status
 
 
