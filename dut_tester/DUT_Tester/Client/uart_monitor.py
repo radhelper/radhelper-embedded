@@ -16,9 +16,11 @@ from DUT_Tester.crc_table import crcTable
 
 from DUT_Tester.power_switch.error_codes import ErrorCodes
 import DUT_Tester.power_switch.powerswitch as ps
+from DUT_Tester.Client.payload_decoding import parse_payload
 
-SERIAL_TIMEOUT = 5
+SERIAL_TIMEOUT = 15
 MIN_FRAME_INTERVAL = 0.5
+SLEEP_AFTER_REBOOT = 20
 
 
 class UARTMonitor(Thread):
@@ -27,7 +29,7 @@ class UARTMonitor(Thread):
         logger: Logger,
         event_heartbeat: Event,
         event_stop: Event,
-        name = "", 
+        name="",
         freq=100,
         tty="/dev/ttyUSB0",
         baudrate=115200,
@@ -48,6 +50,8 @@ class UARTMonitor(Thread):
 
         self.last_serial = time.time()
 
+        # self.DUT_rebooting = False
+
         self.serial = None
 
         self.serial_timeout = False
@@ -57,7 +61,9 @@ class UARTMonitor(Thread):
     def run(self):
         self.event_heartbeat.set()
 
-        self.logger.consoleLogger.info(f'Started UART "{self.name}" Monitor Thread. [{os.getpid()}]')
+        self.logger.consoleLogger.info(
+            f'Started UART "{self.name}" Monitor Thread. [{os.getpid()}]'
+        )
 
         self.serial = self.PI.serial_open(self.tty, self.baudrate)
 
@@ -66,8 +72,10 @@ class UARTMonitor(Thread):
         while not self.event_stop.is_set():
             # Set heartbeat signal
             self.event_heartbeat.set()
-            print("print2")
-            frame_buffer = self.read_frame_from_serial()  # This function is blocking
+
+            frame_buffer = (
+                self.read_frame_from_serial()
+            )  # This function is blocking for at least SERIAL_TIMEOUT and at max SERIAL_TIMEOUT
 
             if frame_buffer is not None:
                 try:
@@ -92,9 +100,8 @@ class UARTMonitor(Thread):
                 # would be good to at least check for double frames...
                 self.check_for_frame(frame_buffer)
 
-            else:
-                # log error or something else.
-                continue
+            # if self.DUT_rebooting == True:
+            #     break  # quit thread
 
             time.sleep(1 / self.freq)  # do I need this???
 
@@ -110,16 +117,19 @@ class UARTMonitor(Thread):
         frame_received = False
         # partial_frame_buffer = None
         partial_frame_buffer = bytearray()
+        serial_port_busy = True
 
-        while not self.event_stop.is_set():
+        while not self.event_stop.is_set() and serial_port_busy == True:
             self.event_heartbeat.set()
             data_avaiable = self.PI.serial_data_available(self.serial)
-            print("print1")
             if data_avaiable:
                 self.serial_timeout = False
                 self.last_serial = time.time()
-                _, d = self.PI.serial_read(self.serial)
-                partial_frame_buffer += d
+                len_d, d = self.PI.serial_read(self.serial)
+                if len_d > 0:
+                    partial_frame_buffer += d
+                else:
+                    print(partial_frame_buffer)
 
                 # Check for buffer overflow
                 if len(partial_frame_buffer) > self.max_buffer_size:
@@ -136,27 +146,28 @@ class UARTMonitor(Thread):
                 self.logger.consoleLogger.warn("Serial Communication Timeout!")
                 self.logger.dataLogger.info(
                     {
-                        "type": "Serial "+ self.name,
+                        "type": "Serial " + self.name,
                         "id": CLIENT_SERIAL_TIMEOUT,
                         "timestamp": time.time(),
                         "event": "Serial Timeout",
                     }
                 )
 
-                ## If dead: power cycle the DUT
-                # ps.power_cycle("192.168.0.1", 1)
+                self.reboot_DUT()
+
                 frame_received = False
-                print("power cycle!")
-                break
+                serial_port_busy = False
             # if not dead transmiter, means the frame transmission just ended
             elif (
                 time.time() - self.last_serial > MIN_FRAME_INTERVAL
                 and len(partial_frame_buffer) > self.frame_package_size
             ):
                 frame_received = True
-                break
+                serial_port_busy = False
+            else:
+                serial_port_busy = True
 
-            time.sleep(1 / self.freq)
+            # time.sleep(1 / self.freq)
 
         # return partial_frame_buffer
 
@@ -215,7 +226,7 @@ class UARTMonitor(Thread):
         if frame_processed_successfully:
             self.logger.dataLogger.info(
                 {
-                    "type": "Serial "+ self.name,
+                    "type": "Serial " + self.name,
                     "id": CLIENT_SERIAL_FRAME_RX,
                     "timestamp": time.time(),
                     "data": buffer,
@@ -224,12 +235,22 @@ class UARTMonitor(Thread):
         else:
             self.logger.dataLogger.info(
                 {
-                    "type": "Serial "+ self.name,
+                    "type": "Serial " + self.name,
                     "id": CLIENT_SERIAL_FRAME_ERROR,
                     "timestamp": time.time(),
                     "event": "Frame incomplete",
                 }
             )
+
+    def reboot_DUT(self):
+        # Close serial port
+        # self.logger.consoleLogger.info(f"Killing uart connection.")
+        # self.PI.serial_close(self.serial)
+
+        # self.DUT_rebooting = True
+        self.logger.consoleLogger.info(f"Power Cycling DUT.")
+        # Power cycle DUT
+        # ps.power_cycle("192.168.0.1", 1)
 
     def decode_frame(self, frame_bytes):
         # Desconstructing the frame
@@ -249,8 +270,14 @@ class UARTMonitor(Thread):
 
         crc_check = self.check_crc(payload, payload_length, crc)
 
+        data = None
+
         if crc_check is False:
             self.logger.consoleLogger.info(f"CRC Check failed!")
+        else:
+            print(type(payload))
+            data = parse_payload(payload, frame_id)
+            print(data)
 
         self.logger.dataLogger.info(
             {

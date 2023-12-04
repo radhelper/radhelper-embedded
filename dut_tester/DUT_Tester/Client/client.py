@@ -33,48 +33,47 @@ class Client:
         self.loggers = []
 
         self.general_logger = Logger(
-             "Client",
-             self.log_folder,
-             self.ip_address,
-             self.port,
-             verbose=self.verbose,
-             name_specifier= "general_logger",
-             log_rotate_interval=args.log_rotate_interval,
-            )
+            "Client",
+            self.log_folder,
+            self.ip_address,
+            self.port,
+            verbose=self.verbose,
+            name_specifier="general_logger",
+            log_rotate_interval=args.log_rotate_interval,
+        )
         self.loggers.append(self.general_logger)
 
-        #global_vars.uart_info
+        # global_vars.uart_info
         uarts = global_vars.uart_info
         i = 0
-        for uart in uarts['uart']:
-            if (i >= uarts['number_conected_uarts']):
+        for uart in uarts["uart"]:
+            if i >= uarts["number_conected_uarts"]:
                 break
-            
-            setattr(self, 'event_' + uart['name'] + '_monitor_heartbeat', Event())
-            #self.event_uart0_monitor_heartbeat = Event()
-            #self.event_uart1_monitor_heartbeat = Event()
-            print('event_' + uart['name'] + '_monitor_heartbeat')
 
-            uart_monitor_name = uart['name'] + '_monitor'
+            setattr(self, "event_" + uart["name"] + "_monitor_heartbeat", Event())
+            print("event_" + uart["name"] + "_monitor_heartbeat")
+
+            uart_monitor_name = uart["name"] + "_monitor"
             uart_logger = Logger(
-             "Client",
-             self.log_folder,
-             self.ip_address,
-             self.port,
-             verbose=self.verbose,
-             name_specifier= uart_monitor_name,
-             log_rotate_interval=args.log_rotate_interval,
+                "Client",
+                self.log_folder,
+                self.ip_address,
+                self.port,
+                verbose=self.verbose,
+                name_specifier=uart_monitor_name,
+                log_rotate_interval=args.log_rotate_interval,
             )
             self.loggers.append(uart_logger)
             attr_value = UARTMonitor(
-            logger= uart_logger,
-            #event_heartbeat = self.event_uart0_monitor_heartbeat, #value = getattr(my_obj, attr_name)
-            event_heartbeat = getattr(self, 'event_' + uart['name'] + '_monitor_heartbeat'),
-            event_stop = self.event_stop,
-            name = uart_monitor_name,
-            freq=self.freq_monitor_data,
-            tty=uart['tty'],
-            baudrate=uart['baudrate'],
+                logger=uart_logger,
+                event_heartbeat=getattr(
+                    self, "event_" + uart["name"] + "_monitor_heartbeat"
+                ),
+                event_stop=self.event_stop,
+                name=uart_monitor_name,
+                freq=self.freq_monitor_data,
+                tty=uart["tty"],
+                baudrate=uart["baudrate"],
             )
 
             setattr(self, uart_monitor_name, attr_value)
@@ -87,8 +86,6 @@ class Client:
             signal.signal(signal.SIGINT, self.handler)
             signal.signal(signal.SIGTERM, self.handler)
 
-            # self.uart0_monitor.start()
-            # self.uart1_monitor.start()
             for uart_monitor in self.uart_monitors:
                 uart_monitor.start()
 
@@ -99,7 +96,7 @@ class Client:
                 self.check_monitors()
 
                 # Check if disk space is running low and delete old log files if necessary
-                self.check_disk_space()
+                # self.check_disk_space()
 
                 # Do this check every second
                 time.sleep(1)
@@ -115,58 +112,13 @@ class Client:
                         "event": f"Client error: {str(e)}",
                     }
                 )
-            # self.logger.consoleLogger.error(f"Error: {str(e)}")
-            # self.logger.dataLogger.info(
-            #     {
-            #         "type": "Client",
-            #         "id": CLIENT_ERROR,
-            #         "timestamp": time.time(),
-            #         "event": f"Client error: {str(e)}",
-            #     }
-            # )
 
         self.fail()
 
     def check_monitors(self):
-        # Check if  monitor thread is still alive
-        # if not self.event_uart0_monitor_heartbeat.is_set() and self.data_monitor_alive:
-        #     self.data_monitor_alive = False
-        #     self.logger.dataLogger.info(
-        #         {
-        #             "type": "Client",
-        #             "id": CLIENT_ERROR,
-        #             "timestamp": time.time(),
-        #             "event": "Data Monitor thread seems not to be alive.",
-        #         }
-        #     )
-        #     self.logger.consoleLogger.error(
-        #         "Data Monitor thread seems not to be alive."
-        #     )
-        #     self.fail()
-
-        # self.event_uart0_monitor_heartbeat.clear()
-
-        # # Check if uart1 monitor thread is still alive
-        # if not self.event_uart1_monitor_heartbeat.is_set() and self.data_monitor_alive:
-        #     self.data_monitor_alive = False
-        #     self.logger.dataLogger.info(
-        #         {
-        #             "type": "Client",
-        #             "id": CLIENT_ERROR,
-        #             "timestamp": time.time(),
-        #             "event": "Data Monitor thread seems not to be alive.",
-        #         }
-        #     )
-        #     self.logger.consoleLogger.error(
-        #         "Data Monitor thread seems not to be alive."
-        #     )
-        #     self.fail()
-
-        # self.event_uart1_monitor_heartbeat.clear()
-
         for uart_monitor in self.uart_monitors:
             # Check if  monitor thread is still alive
-            #if not self.event_uart0_monitor_heartbeat.is_set() and self.data_monitor_alive:
+            # if not self.event_uart0_monitor_heartbeat.is_set() and self.data_monitor_alive:
             if not uart_monitor.event_heartbeat.is_set() and self.data_monitor_alive:
                 self.data_monitor_alive = False
                 uart_monitor.logger.dataLogger.info(
@@ -181,8 +133,7 @@ class Client:
                     "Data Monitor thread for {uart_monitor.name} seems not to be alive."
                 )
                 self.fail()
-            #print("monitor was alive")
-            uart_monitor.event_heartbeat.clear()            
+            uart_monitor.event_heartbeat.clear()
 
     def check_disk_space(self):
         stat = shutil.disk_usage(self.log_folder)
@@ -201,8 +152,6 @@ class Client:
         self.general_logger.consoleLogger.warn("Stopping client...")
         self.event_stop.set()
 
-        # self.uart0_monitor.join()
-        # self.uart1_monitor.join()
         for uart_monitor in self.uart_monitors:
             uart_monitor.join()
 
