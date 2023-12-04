@@ -23,6 +23,8 @@ dependencies = [
 'pi-ina219',
 'requests',
 'toml',
+'ping3', 
+'paramiko',
 ]
 [tool.setuptools]
 packages = ['DUT_Tester']
