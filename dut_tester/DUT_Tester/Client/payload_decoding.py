@@ -30,7 +30,7 @@ import struct
 frame_id_formatting = {
     "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB": 0,  # test frame
     # "II": 1,  # fini
-    "IIIIIIIIIIIIII": 1,  # fini
+    "IIIIIIIIIIIIIII": 1,  # fini
     "IIIIII": 16,  # exception
 }
 

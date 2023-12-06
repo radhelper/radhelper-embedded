@@ -1,17 +1,17 @@
 # config.toml
 
-number_conected_uarts = 1
+number_conected_uarts = 2
 
 [[uart]]
-name = "arty"
-tty = "/dev/ttyDUT_ARTY"
+name = "dut0"
+tty = "/dev/ttyDUT0"
 baudrate=115200
 index = 0
 power_port_IP = '0.0.0.0'
 
 [[uart]]
-name = "DUT2"
-tty = "/dev/ttyDUT2"
+name = "dut1"
+tty = "/dev/ttyDUT1"
 baudrate=115200
 index = 0
 power_port_IP = '0.0.0.0'

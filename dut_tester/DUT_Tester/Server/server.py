@@ -3,6 +3,8 @@ import paramiko
 import socket
 import time
 
+import DUT_Tester.power_switch.powerswitch as ps
+
 
 class StateMachine:
     def __init__(self):
@@ -57,18 +59,24 @@ class StateMachine:
     def toString(self):
         return "current state: " + self.current_state + ", output: " + str(self.output)
 
+
 def ping_pi(ip_address):
     try:
-        response = subprocess.run(['ping', '-c', '1', ip_address], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        response = subprocess.run(
+            ["ping", "-c", "1", ip_address],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
         if response.returncode == 0:
-            #print(f"{ip_address} is alive")
+            # print(f"{ip_address} is alive")
             return True
         else:
-            #print(f"{ip_address} is down or not responding.")
+            # print(f"{ip_address} is down or not responding.")
             return False
     except Exception as e:
         print(f"Error pinging {ip_address}: {e}")
         return False
+
 
 def ssh_connect(ip_address, username, password):
     try:
@@ -96,24 +104,25 @@ def is_ssh_connection_active(client, host, port, username, password, ssh_timeout
         # If there is an exception, return False
         return False
 
+
 def run_command_over_ssh(ssh_client, command):
     stdin, stdout, stderr = ssh_client.exec_command(command)
-    while not stdout.channel.exit_status_ready():
-        # Print stdout
-        if stdout.channel.recv_ready():
-            alldata = stdout.channel.recv(1024)
-            while stdout.channel.recv_ready():
-                alldata += stdout.channel.recv(1024)
+    # while not stdout.channel.exit_status_ready():
+    #     # Print stdout
+    #     if stdout.channel.recv_ready():
+    #         alldata = stdout.channel.recv(1024)
+    #         while stdout.channel.recv_ready():
+    #             alldata += stdout.channel.recv(1024)
 
-            print(str(alldata, "utf8"))
+    #         print(str(alldata, "utf8"))
 
-        # Print stderr
-        if stderr.channel.recv_stderr_ready():
-            errdata = stderr.channel.recv_stderr(1024)
-            while stderr.channel.recv_stderr_ready():
-                errdata += stderr.channel.recv_stderr(1024)
+    #     # Print stderr
+    #     if stderr.channel.recv_stderr_ready():
+    #         errdata = stderr.channel.recv_stderr(1024)
+    #         while stderr.channel.recv_stderr_ready():
+    #             errdata += stderr.channel.recv_stderr(1024)
 
-            print(str(errdata, "utf8"))
+    #         print(str(errdata, "utf8"))
 
     print("Command execution completed.")
 
@@ -145,11 +154,13 @@ if __name__ == "__main__":
             # print("Time sync")
             if ssh_is_active:
                 time_sync_command = "sudo ~/radhelper-embedded/dut_tester/util/time_sync/time_sync_script.sh"
+                print("sync")
                 run_command_over_ssh(ssh_client, time_sync_command)
                 # wait for 7 seconds for the time sync to complete
                 time.sleep(7)
 
                 # code to start the DUT script
+                print("DUT")
                 run_command_over_ssh(
                     ssh_client,
                     "cd ~/radhelper-embedded/dut_tester/; pwd; source .venv/bin/activate; python -m DUT_Tester client 192.168.0.32",
@@ -160,6 +171,7 @@ if __name__ == "__main__":
         elif fsm.current_state == "lost_physical_connection":
             print("lost connection")
             # Do a power cycle: call the pwer cycle script
+            ps.power_cycle(8, "192.168.0.100")
 
             # wait for 5 seconds
             time.sleep(5)

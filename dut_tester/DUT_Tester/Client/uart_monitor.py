@@ -72,7 +72,7 @@ class UARTMonitor(Thread):
 
         self.last_serial = time.time()
 
-        self.power_up_DUT("192.168.0.1", 1)
+        self.power_up_DUT("192.168.1.240", 1)
 
         while not self.event_stop.is_set():
             # Set heartbeat signal
@@ -105,11 +105,7 @@ class UARTMonitor(Thread):
                 self.check_for_frame(frame_buffer)
 
             else:  ## If its not getting anything, try powering up
-                self.power_up_DUT("192.168.0.1", 1)
-            # if self.DUT_rebooting == True:
-            #     break  # quit thread
-
-            time.sleep(1 / self.freq)  # do I need this???
+                self.power_up_DUT("192.168.1.240", 1)
 
         self.PI.serial_close(self.serial)
         self.logger.consoleLogger.info(f"Stopped Data Monitor Thread. [{os.getpid()}]")
@@ -124,6 +120,7 @@ class UARTMonitor(Thread):
         # partial_frame_buffer = None
         partial_frame_buffer = bytearray()
         serial_port_busy = True
+        currently_receiving = False
 
         while not self.event_stop.is_set() and serial_port_busy == True:
             self.event_heartbeat.set()
@@ -133,9 +130,9 @@ class UARTMonitor(Thread):
                 len_d, d = self.PI.serial_read(self.serial)
                 if len_d > 0:
                     self.last_serial = time.time()
+                    # print(self.last_serial, d)
                     partial_frame_buffer += d
-                else:
-                    print(partial_frame_buffer)
+                    currently_receiving = True
 
                 # Check for buffer overflow
                 if len(partial_frame_buffer) > self.max_buffer_size:
@@ -160,20 +157,26 @@ class UARTMonitor(Thread):
                 )
 
                 # Power down DUT...
-                self.power_down_DUT("192.168.0.1", 1)
+                self.power_down_DUT("192.168.1.240", 1)
 
                 frame_received = False
                 serial_port_busy = False
             # if not dead transmiter, means the frame transmission just ended
-            elif time.time() - self.last_serial > MIN_FRAME_INTERVAL:
+            elif (
+                time.time() - self.last_serial > MIN_FRAME_INTERVAL
+                and currently_receiving == True
+            ):
                 if (
                     len(partial_frame_buffer) > self.frame_package_size
                     and len(partial_frame_buffer) > 0
                 ):
                     frame_received = True
                 serial_port_busy = False
+                # print("Frame ended", time.time(), self.last_serial)
+                currently_receiving = False
             else:
                 serial_port_busy = True
+                # print("Else", time.time(), self.last_serial)
 
             # time.sleep(1 / self.freq)
 
