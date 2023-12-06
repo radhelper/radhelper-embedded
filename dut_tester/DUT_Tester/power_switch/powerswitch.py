@@ -67,8 +67,8 @@ def _lindy_switch(
         "Content-Length": "0",
     }
 
-    print(url)
-    print(headers)
+    # print(url)
+    # print(headers)
     default_string = "Could not change Lindy IP switch status, portNumber:"
     try:
         requests_status = requests.post(url, data=json.dumps(payload), headers=headers)
