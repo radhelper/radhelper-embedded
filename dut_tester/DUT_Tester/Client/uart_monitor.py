@@ -3,7 +3,7 @@ import os
 import time
 from threading import Event, Thread
 
-import pigpio
+import serial
 
 from DUT_Tester.log_id import (
     CLIENT_SERIAL_TIMEOUT,
@@ -18,8 +18,8 @@ from DUT_Tester.power_switch.error_codes import ErrorCodes
 import DUT_Tester.power_switch.powerswitch as ps
 from DUT_Tester.Client.payload_decoding import parse_payload
 
-SERIAL_TIMEOUT = 15
-MIN_FRAME_INTERVAL = 0.5
+SERIAL_TIMEOUT = 10
+MIN_FRAME_INTERVAL = 2
 SLEEP_AFTER_REBOOT = 20
 
 
@@ -33,6 +33,8 @@ class UARTMonitor(Thread):
         freq=100,
         tty="/dev/ttyUSB0",
         baudrate=115200,
+        lindy_switch="192.168.1.240",
+        lindy_port=1,
     ):
         Thread.__init__(self)
         self.deamon = True
@@ -41,6 +43,8 @@ class UARTMonitor(Thread):
         self.baudrate = baudrate
         self.tty = tty
         self.name = name
+        self.lindy_switch = lindy_switch
+        self.lindy_port = lindy_port
 
         self.max_buffer_size = 524  ## Equals to 2 maxed frames
         self.frame_package_size = 6
@@ -59,7 +63,7 @@ class UARTMonitor(Thread):
         self.serial_timeout = False
         self.device_is_off = True
 
-        self.PI = pigpio.pi()
+        # self.PI = pigpio.pi()
 
     def run(self):
         self.event_heartbeat.set()
@@ -68,11 +72,14 @@ class UARTMonitor(Thread):
             f'Started UART "{self.name}" Monitor Thread. [{os.getpid()}]'
         )
 
-        self.serial = self.PI.serial_open(self.tty, self.baudrate)
+        self.serial = serial.Serial(port=self.tty, baudrate=self.baudrate)
+
+        self.serial.flushInput()
+        self.serial.flushOutput()
 
         self.last_serial = time.time()
 
-        self.power_up_DUT("192.168.1.240", 1)
+        self.power_up_DUT(self.lindy_port, self.lindy_switch)
 
         while not self.event_stop.is_set():
             # Set heartbeat signal
@@ -102,12 +109,13 @@ class UARTMonitor(Thread):
                 )
                 #### process the received loop and check for frames
                 # would be good to at least check for double frames...
-                self.check_for_frame(frame_buffer)
+                # self.check_for_frame(frame_buffer)
 
             else:  ## If its not getting anything, try powering up
-                self.power_up_DUT("192.168.1.240", 1)
+                self.power_up_DUT(self.lindy_port, self.lindy_switch)
 
-        self.PI.serial_close(self.serial)
+        # self.PI.serial_close(self.serial)
+        self.serial.close()
         self.logger.consoleLogger.info(f"Stopped Data Monitor Thread. [{os.getpid()}]")
 
     ##### loop to listen to port
@@ -115,77 +123,61 @@ class UARTMonitor(Thread):
     # timeout if nothing gets sent for a while
     # max buffer size to prevent infinite read
     # log every received buffer
+
     def read_frame_from_serial(self):
-        frame_received = False
-        # partial_frame_buffer = None
-        partial_frame_buffer = bytearray()
-        serial_port_busy = True
-        currently_receiving = False
+        frame_buffer = bytearray()
+        last_read_time = None
 
-        while not self.event_stop.is_set() and serial_port_busy == True:
+        while not self.event_stop.is_set():
             self.event_heartbeat.set()
-            data_avaiable = self.PI.serial_data_available(self.serial)
-            if data_avaiable:
+
+            # Check for data availability
+            if self.serial.in_waiting > 0:
                 self.serial_timeout = False
-                len_d, d = self.PI.serial_read(self.serial)
-                if len_d > 0:
-                    self.last_serial = time.time()
-                    # print(self.last_serial, d)
-                    partial_frame_buffer += d
-                    currently_receiving = True
+                data = self.serial.read(self.serial.in_waiting)
+                frame_buffer += data
 
-                # Check for buffer overflow
-                if len(partial_frame_buffer) > self.max_buffer_size:
-                    self.logger.consoleLogger.warn("Receiver buffer overflow!")
-                    ## TODO: SHOULD WE ADD A DATA LOG FOR THE OVERFLOW BUFF?
-                    return partial_frame_buffer
+                # Update the last read time
+                last_read_time = time.time()
 
-            # Check for dead transmitter
+            # Check if the frame interval has elapsed
+            if last_read_time and time.time() - last_read_time > 3:
+                if len(frame_buffer) > 0:
+                    return frame_buffer
+                else:
+                    # Reset for the next frame
+                    frame_buffer = bytearray()
+
+            # Handle potential buffer overflow
+            if len(frame_buffer) > self.max_buffer_size:
+                self.logger.consoleLogger.warn("Receiver buffer overflow!")
+                return frame_buffer
+
+            # Check for serial timeout
             if (
-                time.time() - self.last_serial > SERIAL_TIMEOUT
+                last_read_time
+                and time.time() - last_read_time > SERIAL_TIMEOUT
                 and not self.serial_timeout
             ):
-                self.serial_timeout = True
-                self.logger.consoleLogger.warn("Serial Communication Timeout!")
-                self.logger.dataLogger.info(
-                    {
-                        "type": "Serial " + self.name,
-                        "id": CLIENT_SERIAL_TIMEOUT,
-                        "timestamp": time.time(),
-                        "event": "Serial Timeout",
-                    }
-                )
+                self.handle_serial_timeout()
+                return None
 
-                # Power down DUT...
-                self.power_down_DUT("192.168.1.240", 1)
+            # time.sleep(0.001)  # Sleep for 100 ms to reduce CPU usage
 
-                frame_received = False
-                serial_port_busy = False
-            # if not dead transmiter, means the frame transmission just ended
-            elif (
-                time.time() - self.last_serial > MIN_FRAME_INTERVAL
-                and currently_receiving == True
-            ):
-                if (
-                    len(partial_frame_buffer) > self.frame_package_size
-                    and len(partial_frame_buffer) > 0
-                ):
-                    frame_received = True
-                serial_port_busy = False
-                # print("Frame ended", time.time(), self.last_serial)
-                currently_receiving = False
-            else:
-                serial_port_busy = True
-                # print("Else", time.time(), self.last_serial)
+        return None
 
-            # time.sleep(1 / self.freq)
-
-        # return partial_frame_buffer
-
-        if frame_received == True:
-            return partial_frame_buffer
-        else:
-            return None
+    def handle_serial_timeout(self):
+        self.serial_timeout = True
+        self.logger.consoleLogger.warn("Serial Communication Timeout!")
+        self.logger.dataLogger.info(
+            {
+                "type": "Serial " + self.name,
+                "id": CLIENT_SERIAL_TIMEOUT,
+                "timestamp": time.time(),
+                "event": "Serial Timeout",
+            }
+        )
+        self.power_down_DUT(self.lindy_port, self.lindy_switch)
 
     def check_for_frame(self, buffer):
         # Read byte by byte
@@ -300,7 +292,7 @@ class UARTMonitor(Thread):
 
     def power_down_DUT(self, select_power_switch, power_IP):
         return_code = 0
-        # return_code = ps._lindy_switch("OFF", select_power_switch, power_IP)
+        return_code = ps._lindy_switch("OFF", select_power_switch, power_IP)
 
         self.device_is_off = True
 
@@ -315,7 +307,7 @@ class UARTMonitor(Thread):
 
         if (time.time() > self.reboot_start_time + 10) and self.device_is_off == True:
             # print(self.reboot_start_time, time.time())
-            # return_code = ps._lindy_switch("ON", select_power_switch, power_IP)
+            return_code = ps._lindy_switch("ON", select_power_switch, power_IP)
 
             self.logger.consoleLogger.warn(
                 f"Powering up {select_power_switch} at {power_IP}:: {return_code}"

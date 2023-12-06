@@ -74,6 +74,8 @@ class Client:
                 freq=self.freq_monitor_data,
                 tty=uart["tty"],
                 baudrate=uart["baudrate"],
+                lindy_switch=uart["lindy_switch"],
+                lindy_port=uart["lindy_port"],
             )
 
             setattr(self, uart_monitor_name, attr_value)
@@ -130,7 +132,7 @@ class Client:
                     }
                 )
                 self.general_logger.consoleLogger.error(
-                    "Data Monitor thread for {uart_monitor.name} seems not to be alive."
+                    f"Data Monitor thread for {uart_monitor.name} seems not to be alive."
                 )
                 self.fail()
             uart_monitor.event_heartbeat.clear()
