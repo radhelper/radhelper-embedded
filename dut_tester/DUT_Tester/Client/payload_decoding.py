@@ -42,6 +42,7 @@ def parse_payload(data, frame_id):
 
     # Find the format string for the given frame_id
     format_str = None
+    unpacked_data = ()
     for fmt_str, id in frame_id_formatting.items():
         if id == frame_id:
             format_str = fmt_str
@@ -54,9 +55,7 @@ def parse_payload(data, frame_id):
     try:
         unpacked_data = struct.unpack(format_str, data)
     except struct.error as e:
-        raise ValueError(
-            f"Error unpacking data with format {format_str}: {e}, data {data}"
-        )
+        print(f"Error unpacking data with format {format_str}: {e}, data {data}")
 
     # # Convert bytes to string for field4 if necessary
     # field4 = field4.decode("utf-8").rstrip("\x00")
