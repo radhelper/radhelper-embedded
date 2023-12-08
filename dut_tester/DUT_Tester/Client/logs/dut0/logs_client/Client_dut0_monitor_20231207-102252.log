@@ -1,0 +1,13 @@
+{"message": "", "type": "Serial dut0_monitor", "id": 20, "timestamp": 1701944576.71654, "data": "aa013c00000000ec43ef10da2001020000000000000000000000000000000000000000000000000000000080361000b160250000000000030000000000000034a955"}
+{"message": "", "type": "Serial dut0_monitor", "id": 19, "timestamp": 1701944592.5744584, "event": "Serial Timeout"}
+{"message": "", "type": "Serial dut0_monitor", "id": 20, "timestamp": 1701944597.006606, "data": "\u0000"}
+{"message": "", "type": "Serial dut0_monitor", "id": 20, "timestamp": 1701944620.7231696, "data": "aa013c00000000ec43ef10da2001020000000000000000000000000000000000000000000000000000000080361000b160250000000000030000000000000034a955"}
+{"message": "", "type": "Serial dut0_monitor", "id": 20, "timestamp": 1701944626.4189289, "data": "aa013c00000000d143ef104c3102040000000000000000000000000000000000000000000000000000000080361000b1602500000000000300000000000000ebeb55"}
+{"message": "", "type": "Serial dut0_monitor", "id": 19, "timestamp": 1701944638.4190705, "event": "Serial Timeout"}
+{"message": "", "type": "Serial dut0_monitor", "id": 20, "timestamp": 1701944652.8175104, "data": "00000000ff"}
+{"message": "", "type": "Serial dut0_monitor", "id": 20, "timestamp": 1701944664.4227502, "data": "aa013c00000000d143ef104c310204000000000000000080361000b1602500000000000300000000000000ebeb55"}
+{"message": "", "type": "Serial dut0_monitor", "id": 20, "timestamp": 1701944670.1252007, "data": "aa013c00000000d443ef10be4103060000000000000000000000000000000000000000000000000000000080361000b16025000000000003000000000000001c0b55"}
+{"message": "", "type": "Serial dut0_monitor", "id": 20, "timestamp": 1701944675.819974, "data": "aa013c00000000d843ef10305204080000000000000000000000000000000000000000000000000000000080361000b160250000000000030000000000000033ad55"}
+{"message": "", "type": "Serial dut0_monitor", "id": 19, "timestamp": 1701944687.8211277, "event": "Serial Timeout"}
+{"message": "", "type": "Serial dut0_monitor", "id": 20, "timestamp": 1701944702.8489065, "data": "\u0000\u0000"}
+{"message": "", "type": "Client", "id": 24, "timestamp": 1701944709.869524, "event": "Data Monitor thread seems not to be alive."}
