@@ -1,0 +1,2 @@
+{"message": "", "type": "Serial dut0_monitor", "id": 20, "timestamp": 1702115039.9662845, "data": "aa013c000000004806c005b38bab004538f80066424602b6a8500197d9420068c21500bb22f7005c7a0c007bc60700363502000000000000000000a2bd010054c355"}
+{"message": "", "type": "Client", "id": 24, "timestamp": 1702115041.228788, "event": "Data Monitor thread seems not to be alive."}

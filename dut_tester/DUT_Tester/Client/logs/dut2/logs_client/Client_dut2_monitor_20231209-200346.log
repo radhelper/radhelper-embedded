@@ -1,0 +1,5 @@
+{"message": "", "type": "Serial dut2_monitor", "id": 20, "timestamp": 1702148629.3612428, "data": "aa0114000000006351b302878bab00757ca0003d7b0300654955"}
+{"message": "", "type": "Serial dut2_monitor", "id": 20, "timestamp": 1702148632.194479, "data": "aa011400000000df91b302878bab00757ca000af7a0300fbad55"}
+{"message": "", "type": "Serial dut2_monitor", "id": 20, "timestamp": 1702148635.009062, "data": "aa0114000000004e94b302878bab00757ca0005b7b03002f3055"}
+{"message": "", "type": "Serial dut2_monitor", "id": 20, "timestamp": 1702148637.8411376, "data": "aa011400000000e075b302878bab00757ca000af7c03002db455"}
+{"message": "", "type": "Serial dut2_monitor", "id": 19, "timestamp": 1702148667.3415637, "event": "Serial Timeout"}
