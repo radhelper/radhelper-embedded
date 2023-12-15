@@ -1,4 +1,0 @@
-{"message": "", "type": "Serial dut3_monitor", "id": 19, "timestamp": 1702135144.3674195, "event": "Serial Timeout"}
-{"message": "", "type": "Serial dut3_monitor", "id": 20, "timestamp": 1702135124.5809083, "data": "aa0114000000005157b302878bab00757ca000af7c0300383255"}
-{"message": "", "type": "Serial dut3_monitor", "id": 20, "timestamp": 1702135127.3963237, "data": "aa011400000000f84cb302878bab00757ca0008f7c0300725255"}
-{"message": "", "type": "Serial dut3_monitor", "id": 19, "timestamp": 1702135268.2242625, "event": "Serial Timeout"}

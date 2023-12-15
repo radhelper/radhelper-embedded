@@ -1,0 +1,14 @@
+{"message": "", "type": "Serial dut3_monitor", "id": 20, "timestamp": 1702145411.7236516, "data": "aa011400000000b368b302878bab00757ca000bc7b030033b155"}
+{"message": "", "type": "Serial dut3_monitor", "id": 20, "timestamp": 1702145414.5550141, "data": "aa011400000000eb4fb302878bab00757ca0000a7b0300bedd55"}
+{"message": "", "type": "Serial dut3_monitor", "id": 20, "timestamp": 1702145417.384671, "data": "aa0114000000009894b302878bab00757ca000fc7b0300f38355"}
+{"message": "", "type": "Serial dut3_monitor", "id": 20, "timestamp": 1702145420.200555, "data": "aa011400000000ae98b302878bab00757ca000797c03000e3c55"}
+{"message": "", "type": "Serial dut3_monitor", "id": 20, "timestamp": 1702145423.033216, "data": "aa011400000000e87bb302878bab00757ca000ac7b0300d35355"}
+{"message": "", "type": "Serial dut3_monitor", "id": 20, "timestamp": 1702145425.864858, "data": "aa0114000000008885b302878bab00757ca000757d0300ac1055"}
+{"message": "", "type": "Serial dut3_monitor", "id": 20, "timestamp": 1702145428.680541, "data": "aa011400000000a1ecb302878bab00757ca0000d7d0300aab755"}
+{"message": "", "type": "Serial dut3_monitor", "id": 19, "timestamp": 1702145458.181094, "event": "Serial Timeout"}
+{"message": "", "type": "Serial dut3_monitor", "id": 19, "timestamp": 1702145458.4043336, "event": "Serial Timeout"}
+{"message": "", "type": "Serial dut3_monitor", "id": 19, "timestamp": 1702145458.6093013, "event": "Serial Timeout"}
+{"message": "", "type": "Serial dut3_monitor", "id": 19, "timestamp": 1702145458.6918588, "event": "Serial Timeout"}
+{"message": "", "type": "Serial dut3_monitor", "id": 19, "timestamp": 1702145458.7383947, "event": "Serial Timeout"}
+{"message": "", "type": "Serial dut3_monitor", "id": 19, "timestamp": 1702145458.785198, "event": "Serial Timeout"}
+{"message": "", "type": "Serial dut3_monitor", "id": 19, "timestamp": 1702145458.8317292, "event": "Serial Timeout"}

@@ -1,0 +1,2 @@
+{"message": "", "type": "Serial dut0_monitor", "id": 19, "timestamp": 1701993048.5297997, "event": "Serial Timeout"}
+{"message": "", "type": "Serial dut0_monitor", "id": 20, "timestamp": 1701993053.1794016, "data": "aa013c00000000df43ef1033182b2f0000000000000000000000000000000000000000000000000000000080361000b1602500000000000300000000000000b08c5500"}
