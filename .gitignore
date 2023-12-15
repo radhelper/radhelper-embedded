@@ -1,3 +1,7 @@
 
 scp-to-client.sh
+./log_parser/logs/*
+.ipynb_checkpoints/
+*.ipynb
+*.pyc
 
