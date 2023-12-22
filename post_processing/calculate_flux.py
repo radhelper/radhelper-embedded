@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
-import sys
-from datetime import datetime, timedelta
-
+from datetime import datetime
 import numpy as np
 import pandas as pd
-
-# Time for each run
-SECONDS_1h = 600
+import sys
+import os
 
 
 def read_count_file(in_file_name: str):
@@ -74,140 +71,32 @@ def get_fluency_flux(
     return flux, beam_off_time
 
 
-def main():
-    if len(sys.argv) < 3:
-        print(
-            f"Usage: {sys.argv[0]} <neutron counts input file> <distance facility_factor file>"
-        )
-        exit(1)
-
-    neutron_count_file = sys.argv[1]
-    distance_factor_file = sys.argv[2]
-
-    # Load all distances before continue
-    distance_data = pd.read_csv(distance_factor_file)
-    # Replace the hours and the minutes to the last
-    distance_data["start"] = distance_data["start"].apply(
-        lambda row: datetime.strptime(row, "%d/%m/%Y %H:%M:%S")
-    )
-    distance_data["end"] = distance_data["end"].apply(
-        lambda row: datetime.strptime(row, "%d/%m/%Y %H:%M:%S")
-    )
-    # -----------------------------------------------------------------------------------------------------------------
-    # We need to read the neutron count files before calling get_fluency_flux
-    neutron_count = read_count_file(neutron_count_file)
-    # ----------------------------------------------------------------------------------------------------------------
-
-    test_duration_hours = 1
-
-    # # ECC-only
-    # start_day = 17
-    # start_hour = 00
-    # start_min = 16
-    # start_sec = 44
-    # end_day = 17
-    # end_hour = 5
-    # end_min = 30
-    # end_sec = 20
-
-    # Simple
-    # start_day = 16
-    # start_hour = 13
-    # start_min = 48
-    # start_sec = 29
-    # end_day = 16
-    # end_hour = 19
-    # end_min = 40
-    # end_sec = 24
-
-    # TMR
-    # start_day = 16
-    # start_hour = 21
-    # start_min = 30
-    # start_sec = 32
-    # end_day = 17
-    # end_hour = 0
-    # end_min = 0
-    # end_sec = 54
-
-    # test
-    start_day = 16
-    start_hour = 15
-    start_min = 30
-    start_sec = 32
-    end_day = 16
-    end_hour = start_hour + 1
-    end_min = start_min
-    end_sec = start_sec
-
-    # total_time = 3600 * (end_hour - start_hour) + (end_min -)
-
-    for i in range(test_duration_hours):
-        # for i in range(20):
-        # start_hour = hours[i]
-        # start_min = minutes[i]
-        # start_sec = seconds[i]
-
-        # end_hour = start_hour
-        # end_min = start_min + 5
-
-        # if end_min > 59:
-        #     end_hour = start_hour + 1
-        #     end_min = end_min - 60
-
-        # print(
-        #     f"{start_hour}:{start_min} -- {end_hour}:{end_min}",
-        # )
-
-        start_dt = datetime(2023, 5, start_day, start_hour, start_min, start_sec)
-        end_dt = datetime(2023, 5, end_day, end_hour, end_min, end_sec)
-
-        total_time = (end_dt - start_dt).total_seconds()
-        # end_dt = start_dt + timedelta(hours=1)
-
-        # print(start_dt)
-        # print(end_dt)
-
-        # start_day = end_dt.day
-        # start_hour = end_dt.hour
-        # start_min = end_dt.minute
-        # start_sec = end_dt.second
-
-        # print(start_dt.day)
-        # exit()
-
-        # print(float(distance_data["facility_factor"]))
-
-        distance_line = distance_data[
-            (distance_data["board"].str.contains("bruno2"))
-            # & (distance_data["start"] <= start_dt)
-            # & (start_dt <= distance_data["end"])
-        ]
-        # print(machine)
-        oi = distance_line["facility_factor"]
-        facility_factor = float(distance_line["facility_factor"])
-        distance_attenuation = float(distance_line["Distance attenuation"])
-
-        flux, time_beam_off = get_fluency_flux(
-            start_dt=start_dt,
-            end_dt=end_dt,
-            neutron_count=neutron_count,
-            facility_factor=facility_factor,
-            distance_attenuation=distance_attenuation,
-        )
-
-        fluence = flux * total_time  # 1hour in seconds
-        # fluency = flux
-
-        print(start_dt, flux, time_beam_off, fluence, total_time)
-
-    # print(f"in: {csv_file_name}")
-    # print(f"out: {csv_out_file_summary}")
-    # final_df.to_csv(csv_out_file_summary, index=False, date_format="%Y-%m-%d %H:%M:%S")
+# def filter_beam_off(neutron_count: np.array, beam_off_time: float):
+def parse_line(line):
+    """Parse a line from the file and return the date, time and observation"""
+    parts = line.split("\t")
+    date_str, time_str, observation = parts
+    dt = datetime.strptime(f"{date_str} {time_str}", "%d/%m/%Y %H:%M")
+    return dt, observation.strip()
 
 
-#########################################################
-#                    Main Thread                        #
-#########################################################
-if __name__ == "__main__":
-    main()
+def calculate_open_periods(filename):
+    """Calculate the time windows when the shutter is open"""
+    with open(filename, "r") as file:
+        lines = file.readlines()[1:]  # Skip the header line
+
+    open_time = None
+    periods = []
+
+    for line in lines:
+        dt, observation = parse_line(line)
+
+        if "open" in observation.lower() and open_time is None:
+            open_time = dt
+        elif "close" in observation.lower() and open_time is not None:
+            close_time = dt
+            period = (open_time, close_time)
+            periods.append(period)
+            open_time = None
+
+    return periods

@@ -1,4 +1,5 @@
 import struct
+import log_codes as log
 from crc_table import crcTable
 
 """
@@ -57,16 +58,20 @@ def parse_payload(data, frame_id, frame_id_formatting):
             format_str = fmt_str
             break
 
+    error_code = 0
+
     if format_str is None:
+        error_code = log.ERROR_NO_FORMAT
         raise ValueError(f"No format string found for frame ID {frame_id}")
 
     # Unpack the data dynamically based on the format string
     try:
         unpacked_data = struct.unpack(format_str, data)
     except struct.error as e:
-        print(f"Error unpacking data with format {format_str}: {e}, data {data}")
+        # print(f"Error unpacking data with format {format_str}: {e}, data {data}")
+        error_code = log.ERROR_UNPACK
 
-    return unpacked_data
+    return error_code, unpacked_data
 
 
 def check_crc(payload, payload_length, crc_value):
@@ -112,9 +117,11 @@ def decode_frame(frame_bytes, frame_id_formatting):
 
     data = None
 
+    error_code = 0
     if crc_check is False:
-        print(f"CRC Check failed!")
+        # print(f"CRC Check failed!")
+        error_code = log.ERROR_CRC
     else:
-        data = parse_payload(payload, frame_id, frame_id_formatting)
+        error_code, data = parse_payload(payload, frame_id, frame_id_formatting)
 
-    return data
+    return error_code, data, frame_id
