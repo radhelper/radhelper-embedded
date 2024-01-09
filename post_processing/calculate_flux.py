@@ -8,9 +8,10 @@ import os
 
 def read_count_file(in_file_name: str):
     """
-    Read neutron log file
-    :param in_file_name: neutron log filename
-    :return: numpy array with all neutron lines
+    Read neutron log file and return a numpy array with all neutron lines.
+
+    :param in_file_name: The filename of the neutron log file.
+    :return: A numpy array with all neutron lines, where each line is represented as [datetime, fission_counter].
     """
     file_lines = list()
     with open(in_file_name, "r") as in_file:
@@ -40,8 +41,17 @@ def get_fluency_flux(
     distance_attenuation: float,
 ):
     """
-    -- Fission counters are the ChipIR counters -- index 6 in the ChipIR log
-    -- Current Integral are the synchrotron output -- index 7 in the ChipIR log
+    Calculate the fluency flux based on the given parameters.
+
+    Args:
+        start_dt (datetime): The start datetime of the interval.
+        end_dt (datetime): The end datetime of the interval.
+        neutron_count (np.array): The array of neutron counts.
+        facility_factor (float): The facility factor.
+        distance_attenuation (float): The distance attenuation factor.
+
+    Returns:
+        tuple: A tuple containing the calculated flux and the beam off time.
     """
     three_seconds = pd.Timedelta(seconds=3)
     # Slicing the neutron count to use only the useful information
@@ -73,7 +83,14 @@ def get_fluency_flux(
 
 # def filter_beam_off(neutron_count: np.array, beam_off_time: float):
 def parse_line(line):
-    """Parse a line from the file and return the date, time and observation"""
+    """Parse a line from the file and return the date, time and observation.
+
+    Args:
+        line (str): The line to be parsed.
+
+    Returns:
+        tuple: A tuple containing the parsed date and time as a datetime object, and the observation as a string.
+    """
     parts = line.split("\t")
     date_str, time_str, observation = parts
     dt = datetime.strptime(f"{date_str} {time_str}", "%d/%m/%Y %H:%M")
@@ -81,7 +98,16 @@ def parse_line(line):
 
 
 def calculate_open_periods(filename):
-    """Calculate the time windows when the shutter is open"""
+    """
+    Calculate the time windows when the shutter is open.
+
+    Args:
+        filename (str): The path to the file containing the observations.
+
+    Returns:
+        list: A list of tuples representing the open periods. Each tuple contains
+        two elements: the start time and end time of the open period.
+    """
     with open(filename, "r") as file:
         lines = file.readlines()[1:]  # Skip the header line
 
