@@ -1,7 +1,11 @@
 
+
+__pycache__/
 scp-to-client.sh
 ./log_parser/logs/*
 .ipynb_checkpoints/
 *.pyc
-
+*.csv
 *.txt
+
+flux-chipIR-12.ipynb

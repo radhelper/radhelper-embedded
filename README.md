@@ -47,7 +47,3 @@ They mirror "exactly" the behavior of a USB, so they show up on COM ports and TT
 
 This is usefull to know when programming a device such as the Trenz Smartfusion boards, which can be programmed from inside the control room, and be turned on and off via the IP outlets powering the twins.
 
-
-
-
-

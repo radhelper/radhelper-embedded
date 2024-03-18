@@ -39,7 +39,26 @@ keys = [
     "trap",
     "illegal",
 ]
-# keys = ['event', 'timestamp', 'total_errors', 'mcycle', 'minstret', 'ir_c', 'wait_ii', 'wait_if', 'wait_mc', 'load', 'store', 'wait_ls', 'branch', 'tbranch', 'imem_ecc', 'dmem_ecc', 'regfile', 'iv']
+# keys = [
+#     "event",
+#     "timestamp",
+#     "total_errors",
+#     "mcycle",
+#     "minstret",
+#     "ir_c",
+#     "wait_ii",
+#     "wait_if",
+#     "wait_mc",
+#     "load",
+#     "store",
+#     "wait_ls",
+#     "branch",
+#     "tbranch",
+#     "imem_ecc",
+#     "dmem_ecc",
+#     "regfile",
+#     "iv",
+# ]
 
 
 def event_row(row, error_code=0, data_tup=None, frame_id=0):
