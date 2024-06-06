@@ -1,8 +1,0 @@
-{"message": "", "type": "Serial dut0_monitor", "id": 20, "timestamp": 1701944933.0289924, "data": "0000000000000000000000000000000000000000803610"}
-{"message": "", "type": "Serial dut0_monitor", "id": 20, "timestamp": 1701944944.4268727, "data": "0000000000000000000080361000b16025000000000003000000000000002def55"}
-{"message": "", "type": "Serial dut0_monitor", "id": 20, "timestamp": 1701944955.822399, "data": "aa013c00000000e943ef10e3da0b160000000000000000000000000000000000000000000000000000000080361000b16025000000000003000000000000000b4d55"}
-{"message": "", "type": "Serial dut0_monitor", "id": 20, "timestamp": 1701944961.523077, "data": "aa013c00000000ee43ef1055eb0c180000000000000000000000000000000000000000000000000000000080361000b1602500000000000300000000000000f83d55"}
-{"message": "", "type": "Serial dut0_monitor", "id": 19, "timestamp": 1701944973.5238388, "event": "Serial Timeout"}
-{"message": "", "type": "Serial dut0_monitor", "id": 20, "timestamp": 1701944987.9416194, "data": "\u0000\u0000"}
-{"message": "", "type": "Serial dut0_monitor", "id": 19, "timestamp": 1701945003.5456274, "event": "Serial Timeout"}
-{"message": "", "type": "Serial dut0_monitor", "id": 20, "timestamp": 1701945017.9498568, "data": "\u0000"}

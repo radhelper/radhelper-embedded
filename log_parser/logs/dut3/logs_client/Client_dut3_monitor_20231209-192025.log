@@ -1,3 +1,0 @@
-{"message": "", "type": "Serial dut3_monitor", "id": 20, "timestamp": 1702146026.9589825, "data": "aa011400000000ce6bb302878bab00757ca000d67c0300b43855"}
-{"message": "", "type": "Serial dut3_monitor", "id": 20, "timestamp": 1702146029.7740283, "data": "aa0114000000001368b302878bab00757ca000e07c0300c24d55"}
-{"message": "", "type": "Serial dut3_monitor", "id": 19, "timestamp": 1702146059.2753143, "event": "Serial Timeout"}

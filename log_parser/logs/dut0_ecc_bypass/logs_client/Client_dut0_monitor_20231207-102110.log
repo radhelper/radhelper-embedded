@@ -1,9 +1,0 @@
-{"message": "", "type": "Serial dut0_monitor", "id": 20, "timestamp": 1701944477.5752075, "data": "aa013c000000000728f010b1e2a3cd780000000000000000000000000000000000000000000000780000008f361000a96725000000000004000000000000000b9255"}
-{"message": "", "type": "Serial dut0_monitor", "id": 20, "timestamp": 1701944483.2698202, "data": "0000000000000000000000000000007800000080361000b1"}
-{"message": "", "type": "Serial dut0_monitor", "id": 20, "timestamp": 1701944494.666706, "data": "aa013c00000000df43ef100714a7d37800000000000000000000000000000000000000000000007800000080361000b1602500000000000300000000000000813a55"}
-{"message": "", "type": "Serial dut0_monitor", "id": 20, "timestamp": 1701944500.368925, "data": "aa013c00000000cd43ef107924a8d57800000000000000000000000000000000000000000000007800000080361000b16025000000000003000000000000009a6055"}
-{"message": "", "type": "Serial dut0_monitor", "id": 19, "timestamp": 1701944512.3694944, "event": "Serial Timeout"}
-{"message": "", "type": "Serial dut0_monitor", "id": 20, "timestamp": 1701944526.807348, "data": "\u0000\u0000\u0000"}
-{"message": "", "type": "Serial dut0_monitor", "id": 19, "timestamp": 1701944542.3941064, "event": "Serial Timeout"}
-{"message": "", "type": "Serial dut0_monitor", "id": 20, "timestamp": 1701944556.8113, "data": "\u0000\u0000"}
-{"message": "", "type": "Client", "id": 24, "timestamp": 1701944561.2050064, "event": "Data Monitor thread seems not to be alive."}

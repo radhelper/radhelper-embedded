@@ -16,34 +16,120 @@ These are constriants that apply to the setup as it is now.
 - Survive reboots without needing to reprogram.
 
 
-# Setups that work
+## Getting Stated
 
-## Trenz Smartfusion2
+1. Clone this repository:
+    ```sh
+    $> git clone git@iis-git.ee.ethz.ch:space-pulp/DUT_Tester.git
+    $> cd DUT_Tester
+    ```
 
-The SFs can be connected through the twins to the control room. There they can be reprogrammed when the shutter is closed.
+2. Create a new virtual environment in the `venv` folder and install Trikaneros Tester as editable package.
+    ```sh
+    $> python3.9 -m venv .venv
+    $> source .venv/bin/activate
+    $> python -m pip install --upgrade pip
+    $> pip install -e .
+    ```
 
-Additionally, this allows them to be power-cycled through the outlets of the twins. 
+In case you run into issues with python versions on Ubuntu you cab easily switch between multiple versions of Python with [PyEnv](https://github.com/pyenv/pyenv).
+```sh
+$> pyenv versions
+$> pyenv global <version>
+$> python -m venv .venv
+```
 
-The UART output is made through the PMOD headers and the UART/USB converters connected to the raspberry.
+## On the Client (Raspberry Pi)
+The Raspberry Pi automatically enters the `/opt/DUT_Tester` directory and activates the virtual python environmnt.
 
+1. Configure the IP address on the SD-card by modififying the lines:
+   ```bash
+        # Example static IP configuration:
+        interface eth0
+        static ip_address=192.168.0.32
+   ```
+   in `/etc/dhcpcd.conf` on the boot partition of the SD card.
+   
+2. Boot the Raspberry Pi, connect via SSH.
+    ```
+    Username: trikarenos
+    Password: trikarenos
+    ```
+3. Connect to the Pi, make sure to add your SSH key to `~/.ssh/authorized_keys`
+    ```sh
+    # On your Local Machine (will create a file called ~/.ssh/id_ed25519.pub)
+    $> ssh-keygen -t ed25519
 
-# ChipIR
+    # On the Raspberry Pi
+    $> nano ~/.ssh/authorized_keys
+    ```
+4. Modify the IP address of the server
+    ```sh
+    # Modify the ExecStart=/opt/DUT_Tester/.venv/bin/python -m DUT_Tester client <ip_address> ../trikaneros_radiation_app
+    $> sudo nano /etc/systemd/system/trikarenos_tester.service
+    $> sudo systemctl daemon-reload
+    $> sudo systemctl restart trikarenos_tester.service
+    ```
 
-## Equipment
+You can also start a local version of the client (no system service) by running
+```sh
+$> source .venv/bin/activate
+$> python -m DUT_Tester client -h
+```
 
-### IP power outlets
+## On the Server
+1. Make sure that your ethernet interface is statically configured to the same address you specified above in point 5.
+2. Start server
+    ```sh
+    $> source .venv/bin/activate
+    $> python -m DUT_Tester server -h
+    $> python -m DUT_Tester server <Raspberry Pi IP>
+    ```
 
-These outlets are controlled via an IP address. They can be accessed through the browser for human control, or preferebly, through a script runing on a machine connected to the same netmask.
+**Make sure to specify the correct ip address and id for the power switch.**
+```sh
+--switch_id SWITCH_ID              # ID of the power switch (default: 6)
+--switch_ip SWITCH_IP              # ID of the power switch (default: 192.168.0.100)
+--switch_password SWITCH_PASSWORD  # Password of the power switch (default: 1234)
+--switch_username SWITCH_USERNAME  # Username of the power switch (default: snmp)
+```
 
-### Mirror switch
+# Misc
+## Example commands
+```s
+# At University of Twente
+## Standard Setup
+python -m DUT_Tester server --switch_username "frits" --switch_password "Whiskers!" --switch_id 6 192.168.0.200 --fallback-power-switch
 
-Mirror switches are just that, switches that mirror ports on each side. This makes it possible to connect inside the beam room. Its also possible to provide internet through them in this manner.
+## Disable automatic power cycling of the Raspberry Pi
+python -m DUT_Tester server 192.168.0.200 --no-power-cycle
+```
 
-### Twins
+## Installing the script as a systemd service
 
-The twins are a set of USB extenders that are available on the facility. There are 2 modules connected through the mirror switch and hooked up to the IP power outlets. They can sometimes error-out, so they need to be monitored for resets (probably by a human monitoring the setup).
+```sh
+$> sudo nano /etc/systemd/system/trikarenos_tester.service
+$> sudo systemctl daemon-reload
+$> sudo systemctl enable trikarenos_tester.service
+$> sudo systemctl restart trikarenos_tester.service
+```
 
-They mirror "exactly" the behavior of a USB, so they show up on COM ports and TTYs, but this means that they also need to be connected to provide power to the USB at the other end.
+File `/etc/systemd/system/trikarenos_tester.service`
+```
+[Unit]
+Description=Automated testing utility for fault tolerance monitoring in radiation environments
+After=syslog.target network.target
 
-This is usefull to know when programming a device such as the Trenz Smartfusion boards, which can be programmed from inside the control room, and be turned on and off via the IP outlets powering the twins.
+[Service]
+User=trikarenos
+Group=users
+WorkingDirectory=/opt/DUT_Tester
+ExecStart=/opt/DUT_Tester/.venv/bin/python -m DUT_Tester client 192.168.0.2 ../trikaneros_radiation_app
+
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
 

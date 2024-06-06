@@ -1,9 +1,0 @@
-{"message": "", "type": "Serial dut2_monitor", "id": 20, "timestamp": 1702134907.656904, "data": "aa0114000000007557b302878bab00757ca000c37c0300e81455"}
-{"message": "", "type": "Serial dut2_monitor", "id": 20, "timestamp": 1702134910.471243, "data": "aa011400000000884eb302878bab00757ca000ce7c0300ce9555"}
-{"message": "", "type": "Serial dut2_monitor", "id": 19, "timestamp": 1702134930.5653925, "event": "Serial Timeout"}
-{"message": "", "type": "Serial dut2_monitor", "id": 19, "timestamp": 1702134960.596768, "event": "Serial Timeout"}
-{"message": "", "type": "Serial dut2_monitor", "id": 19, "timestamp": 1702134990.6147, "event": "Serial Timeout"}
-{"message": "", "type": "Serial dut2_monitor", "id": 19, "timestamp": 1702135020.633474, "event": "Serial Timeout"}
-{"message": "", "type": "Serial dut2_monitor", "id": 19, "timestamp": 1702135050.6516984, "event": "Serial Timeout"}
-{"message": "", "type": "Serial dut2_monitor", "id": 19, "timestamp": 1702135080.6705709, "event": "Serial Timeout"}
-{"message": "", "type": "Client", "id": 24, "timestamp": 1702135088.9349592, "event": "Data Monitor thread seems not to be alive."}
