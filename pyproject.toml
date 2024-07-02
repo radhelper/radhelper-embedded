@@ -6,8 +6,8 @@ requires = [
 build-backend = "setuptools.build_meta"
 [project]
 name = "DUT_Tester"
-description = "Trikaneros Tester - Automated testing utility for fault tolerance monitoring in radiation environments"
-version = '0.0.1'
+description = "RadHelper Tester - Automated testing utility for fault tolerance monitoring in radiation environments"
+version = '0.0.2'
 readme = "README.md"
 requires-python = ">=3.7"
 dependencies = [

@@ -20,11 +20,11 @@ These are constriants that apply to the setup as it is now.
 
 1. Clone this repository:
     ```sh
-    $> git clone git@iis-git.ee.ethz.ch:space-pulp/DUT_Tester.git
-    $> cd DUT_Tester
+    $> git clone git@gitlab.utwente.nl:dcs-group/radiation-setups/radhelper-embedded.git
+    $> cd radhelper-embedded
     ```
 
-2. Create a new virtual environment in the `venv` folder and install Trikaneros Tester as editable package.
+2. Create a new virtual environment in the `venv` folder and install DUT Tester as editable package.
     ```sh
     $> python3.9 -m venv .venv
     $> source .venv/bin/activate
@@ -33,6 +33,7 @@ These are constriants that apply to the setup as it is now.
     ```
 
 In case you run into issues with python versions on Ubuntu you cab easily switch between multiple versions of Python with [PyEnv](https://github.com/pyenv/pyenv).
+
 ```sh
 $> pyenv versions
 $> pyenv global <version>
