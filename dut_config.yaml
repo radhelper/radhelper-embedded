@@ -1,0 +1,22 @@
+# config.yaml
+
+# - name: "dut3"
+#   connection: "ether"
+#   ip: '123.23.23.1'
+#   baudrate: 115200
+#   power_switch_port: 0
+#   power_port_IP: '0.0.0.0'
+
+- name: "dut0"
+  connection: "usb"
+  tty: "/dev/ttyACM0"
+  baudrate: 115200
+  power_switch_port: 1
+  power_port_IP: '0.0.0.0'
+
+- name: "dut1"
+  connection: "usb"
+  tty: "/dev/ttyACM2"
+  baudrate: 115200
+  power_switch_port: 2
+  power_port_IP: '0.0.0.0'

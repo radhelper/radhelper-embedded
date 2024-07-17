@@ -1,0 +1,42 @@
+# frame_id_formatting.yaml
+# 
+# This YAML file contains the frame ID formatting configurations.
+# Each entry maps a format string to a frame ID.
+# 
+# The format strings are used for unpacking the payload data dynamically based on the frame ID.
+# Format characters:
+# B - unsigned char (1 byte)
+# I - unsigned int (4 bytes)
+# 
+# The frame IDs are integer values that identify the type of frame.
+
+frame_id_formatting:
+  "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB": 0  # test frame: 32 unsigned chars
+  "III": 1  # fini frame: 3 unsigned ints
+  "IIIIII": 16  # exception frame: 6 unsigned ints
+
+# +--------+--------------------+-------------+---------------+
+# | Format | C Type             | Python type | Standard size |
+# +--------+--------------------+-------------+---------------+
+# | x      | pad byte           | no value    | (7)           |
+# | c      | char               | bytes       | 1             |
+# | b      | signed char        | integer     | 1             |
+# | B      | unsigned char      | integer     | 1             |
+# | ?      | _Bool              | bool        | 1             |
+# | h      | short              | integer     | 2             |
+# | H      | unsigned short     | integer     | 2             |
+# | i      | int                | integer     | 4             |
+# | I      | unsigned int       | integer     | 4             |
+# | l      | long               | integer     | 4             |
+# | L      | unsigned long      | integer     | 4             |
+# | q      | long long          | integer     | 8             |
+# | Q      | unsigned long long | integer     | 8             |
+# | n      | ssize_t            | integer     | (3)           |
+# | N      | size_t             | integer     | (3)           |
+# | e      | (6)                | float       | 2             |
+# | f      | float              | float       | 4             |
+# | d      | double             | float       | 8             |
+# | s      | char[]             | bytes       | (9)           |
+# | p      | char[]             | bytes       | (8)           |
+# | P      | void*              | integer     | (5)           |
+# +--------+--------------------+-------------+---------------+

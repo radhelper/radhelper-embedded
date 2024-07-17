@@ -1,0 +1,45 @@
+common:
+  verbose: 
+    value: 0
+    help: "Set verbosity level"
+  port: 
+    value: 2154
+    help: "Port number"
+  log_folder: 
+    value: "logs/"
+    help: "Folder to store the log files"
+
+server:
+  own_ip: 
+    value: "192.168.1.2"
+    help: "Server's own IP address"
+  no_power_cycle: 
+    value: false
+    help: "Do not power cycle the DUT"
+  fallback_power_switch: 
+    value: false
+    help: "Use the fallback API for the power switch"
+  switch_ip: 
+    value: "192.168.0.100"
+    help: "IP of the power switch"
+  switch_password: 
+    value: "1234"
+    help: "Password of the power switch"
+  switch_username: 
+    value: "snmp"
+    help: "Username of the power switch"
+  listen_ip: 
+    value: "0.0.0.0"
+    help: "IP address to listen for incoming connections"
+  user: 
+    value: "pihub"
+    help: "User to connect to via SSH to download log files"
+  directory: 
+    value: "./logs_client/"
+    help: "Folder on client to download log files from"
+  log_fetch_interval: 
+    value: 10
+    help: "Interval in minutes to fetch the log file"
+  log_folder: 
+    value: "logs_server/"
+    help: "Folder to store the log files on the server"
