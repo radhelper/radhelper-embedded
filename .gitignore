@@ -2,6 +2,9 @@
 # Based on https://github.com/github/gitignore/blob/main/Python.gitignore      #
 ################################################################################
 
+# Experiment log files
+logs/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

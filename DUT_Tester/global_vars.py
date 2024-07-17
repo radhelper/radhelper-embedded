@@ -1,1 +1,0 @@
-uart_info : dict
