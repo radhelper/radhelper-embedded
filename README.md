@@ -37,18 +37,16 @@ The frame_id_formatting.yaml YAML file contains the frame ID formatting configur
 
 ## Configuring the TTYs
 
-1. Edit the `dut_config.yaml` file to match your setup:
+1. Edit the `dut_config.yaml` file to match your setup. The url field follows the format as specified by [PySerial](https://pyserial.readthedocs.io/en/latest/url_handlers.html).
     ```yaml
-    - name: "dut0"
-      connection: "usb"
-      tty: "/dev/ttyACM0"
+    - name: "dutUART"
+      url: "/dev/ttyACM0"
       baudrate: 115200
       power_switch_port: 1
       power_port_IP: '0.0.0.0'
 
-    - name: "dut1"
-      connection: "usb"
-      tty: "/dev/ttyACM2"
+    - name: "dutIP"
+      url: "socket://192.168.2.16:20108"
       baudrate: 115200
       power_switch_port: 2
       power_port_IP: '0.0.0.0'
