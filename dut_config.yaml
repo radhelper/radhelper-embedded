@@ -3,14 +3,16 @@
 # https://pyserial.readthedocs.io/en/latest/url_handlers.html
 
 - name: "dutUART"
+  number: 1
   url: "/dev/ttyACM0"
   baudrate: 115200
   power_switch_port: 1
   power_port_IP: '0.0.0.0'
 
-- name: "dutIP"
-  url: "socket://192.168.2.16:20108"
-  baudrate: 115200
-  power_switch_port: 2
-  power_port_IP: '0.0.0.0'
+# - name: "dutIP"
+#   number: 2
+#   url: "socket://192.168.2.16:20108"
+#   baudrate: 115200
+#   power_switch_port: 2
+#   power_port_IP: '0.0.0.0'
 

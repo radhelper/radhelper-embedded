@@ -1,6 +1,7 @@
 import logging
 import logging.handlers
 import logging.config
+import pty
 import os
 import sys
 import time
@@ -73,50 +74,37 @@ class Logger:
         logger.info("This is an info message")
     """
 
+    console_level = None
+    data_logger_level = None
+    coloredlogs_level = None
+    name = None
+
     def __init__(
-        self, mode="", log_folder: str = "logs", verbose=2, log_rotate_interval=10
+        self,
+        mode="",
+        logger=0,
+        log_folder: str = "logs",
+        verbose=2,
+        log_rotate_interval=10,
     ):
 
-        # Determine logging levels based on verbose parameter
-        if verbose >= 3:
-            console_level = logging.DEBUG
-            coloredlogs_level = "DEBUG"
-            data_logger_level = logging.DEBUG
-        elif verbose == 2:
-            console_level = logging.INFO
-            coloredlogs_level = "INFO"
-            data_logger_level = logging.DEBUG
-        elif verbose == 1:
-            console_level = logging.WARNING
-            coloredlogs_level = "WARNING"
-            data_logger_level = logging.DEBUG
-        else:  # verbose == 0
-            console_level = logging.ERROR
-            coloredlogs_level = "ERROR"
-            data_logger_level = (
-                logging.DEBUG
-            )  # Typically, file logging remains at DEBUG
-
         self.name = mode
+        self.number = logger
+        self.setup_folder_file(log_folder)
+        self.setup_level(verbose)
 
-        # Ensure subfolder for mode exists within the main log_folder
-        mode_log_folder = os.path.join(log_folder, mode)
-        if not os.path.exists(mode_log_folder):
-            os.makedirs(mode_log_folder)
+        self.file_handler(log_rotate_interval)
+        if self.name == "Server":
+            self.stream_handler()
+        else:
+            self.stream_handler_dedicated()
 
-        # Base filename with initial timestamp
-        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-        filename = f"{mode}_{timestamp}.log"
-        self.logfile = os.path.join(mode_log_folder, filename)
-        print(f"Store logs to {self.logfile}.")
+    def file_handler(self, log_rotate_interval):
 
         self.fileHandler = CustomTimedRotatingFileHandler(
             self.logfile, when="M", interval=log_rotate_interval, backupCount=0
         )  # No backupCount to avoid deleting old files
-        self.fileHandler.setLevel(data_logger_level)  # Set based on verbose level
-
-        self.streamHandler = StreamHandler(sys.stdout)
-        self.streamHandler.setLevel(console_level)  # Set based on verbose level
+        self.fileHandler.setLevel(self.data_logger_level)  # Set based on verbose level
 
         # Formatter for file handler
         file_fmt = logging.Formatter(
@@ -124,25 +112,126 @@ class Logger:
         )
         self.fileHandler.setFormatter(file_fmt)
 
+        # Logger for file output
+        self.dataLogger = logging.getLogger(self.name)
+        self.dataLogger.addHandler(self.fileHandler)
+        self.dataLogger.setLevel(self.data_logger_level)  # Set based on verbose level
+        self.dataLogger.propagate = False
+
+    def stream_handler_dedicated(self):
+        # Dynamically create a new pseudo-terminal
+        master_fd, slave_fd = pty.openpty()  # Create a new pseudo-terminal
+        terminal_path = os.ttyname(slave_fd)  # Get the TTY path of the slave end
+
+        if self.number == 0:  # Dedicated to the PowerS
+            link_path = "/tmp/logger_PowerS"
+        else:
+            link_path = "/tmp/logger_dut" + str(self.number)
+
+        # Check if the symbolic link already exists
+        if os.path.islink(link_path) or os.path.exists(link_path):
+            print(f"Symlink {link_path} already exists. Removing it...")
+            os.remove(link_path)  # Remove the existing symlink or file
+
+        # Create a symbolic link from the TTY to a fixed path
+        os.symlink(terminal_path, link_path)
+
+        print(f"PTY created at {terminal_path} and linked to {link_path}")
+
+        try:
+            # Open the master side of the PTY for writing
+            terminal_stream = os.fdopen(master_fd, "w", buffering=1)  # Line buffering
+        except FileNotFoundError:
+            raise Exception(f"Terminal {terminal_path} not found")
+
+        # Set up logger if it doesn't exist
+        if not hasattr(self, "consoleLogger"):
+            self.consoleLogger = logging.getLogger(self.name)
+
+        # Remove any existing handlers from the logger
+        if self.consoleLogger.hasHandlers():
+            self.consoleLogger.handlers.clear()
+
+        # Set up new stream handler
+        self.streamHandler = StreamHandler(terminal_stream)
+        self.streamHandler.setLevel(self.console_level)  # Set based on verbose level
+
         # Formatter for stream handler
         console_fmt = logging.Formatter(
             "%(asctime)s [%(levelname)8s] [%(name)6s] %(message)s"
         )
         self.streamHandler.setFormatter(console_fmt)
 
-        # Logger for file output
-        self.dataLogger = logging.getLogger(self.name)
-        self.dataLogger.addHandler(self.fileHandler)
-        self.dataLogger.setLevel(data_logger_level)  # Set based on verbose level
-        self.dataLogger.propagate = False
+        # Attach the new handler
+        self.consoleLogger.addHandler(self.streamHandler)
+        self.consoleLogger.setLevel(self.console_level)
+
+        # Set up colored logs for better readability in the new terminal
+        fmt = "%(asctime)s [%(levelname)8s] [%(name)6s] %(message)s"
+        coloredlogs.install(
+            logger=self.consoleLogger,
+            level=self.coloredlogs_level,
+            fmt=fmt,
+            stream=terminal_stream,
+        )
+
+        # Make sure the stream gets flushed
+        terminal_stream.flush()
+
+    def stream_handler(
+        self,
+    ):
+        self.streamHandler = StreamHandler(sys.stdout)
+        self.streamHandler.setLevel(self.console_level)  # Set based on verbose level
+
+        # Formatter for stream handler
+        console_fmt = logging.Formatter(
+            "%(asctime)s [%(levelname)8s] [%(name)6s] %(message)s"
+        )
+        self.streamHandler.setFormatter(console_fmt)
 
         # Central logger for console output
         self.consoleLogger = logging.getLogger(self.name)
         self.consoleLogger.addHandler(self.streamHandler)
         self.consoleLogger.setLevel(
-            console_level
+            self.console_level
         )  # Ensure consoleLogger's level is set
 
         # Set up colored logs for better readability in the console
         fmt = "%(asctime)s [%(levelname)8s] [%(name)6s] %(message)s"
-        coloredlogs.install(logger=self.consoleLogger, level=coloredlogs_level, fmt=fmt)
+        coloredlogs.install(
+            logger=self.consoleLogger, level=self.coloredlogs_level, fmt=fmt
+        )
+
+    def setup_level(self, verbose):
+        # Determine logging levels based on verbose parameter
+        if verbose >= 3:
+            self.console_level = logging.DEBUG
+            self.coloredlogs_level = "DEBUG"
+            self.data_logger_level = logging.DEBUG
+        elif verbose == 2:
+            self.console_level = logging.INFO
+            self.coloredlogs_level = "INFO"
+            self.data_logger_level = logging.DEBUG
+        elif verbose == 1:
+            self.console_level = logging.WARNING
+            self.coloredlogs_level = "WARNING"
+            self.data_logger_level = logging.DEBUG
+        else:  # verbose == 0
+            self.console_level = logging.ERROR
+            self.coloredlogs_level = "ERROR"
+            self.data_logger_level = (
+                logging.DEBUG
+            )  # Typically, file logging remains at DEBUG
+
+    def setup_folder_file(self, log_folder):
+        # Ensure subfolder for mode exists within the main log_folder
+        mode_log_folder = os.path.join(log_folder, self.name)
+        if not os.path.exists(mode_log_folder):
+            os.makedirs(mode_log_folder)
+
+        # Base filename with initial timestamp
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        filename = f"{self.name}_{timestamp}.log"
+        self.logfile = os.path.join(mode_log_folder, filename)
+        print(f"Store logs to {self.logfile}.")

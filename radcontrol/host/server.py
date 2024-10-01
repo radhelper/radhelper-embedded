@@ -1,4 +1,6 @@
 import threading
+import select
+import sys
 from time import sleep
 from devices.dut import DUT
 from utils.util import Logger
@@ -43,9 +45,20 @@ class Server:
         Handles the initialization and appending of DUT instances to the server.
         """
         try:
+
             for dut in self.args.uart_info.get("duts", []):
+
                 dut_instance = DUT(dut, self.power_controller)
-                self.duts.append(dut_instance)
+
+                # Check if the exact DUT instance already exists in the list
+                if not any(existing_dut == dut_instance for existing_dut in self.duts):
+                    self.duts.append(dut_instance)
+                    self.server_logger.consoleLogger.info(f"Added DUT with info: {dut}")
+                else:
+                    self.server_logger.consoleLogger.info(
+                        f"Identical DUT with info {dut} already exists. Skipping creation."
+                    )
+                # self.duts.append(dut_instance)
         except Exception as e:
             self.server_logger.consoleLogger.error(
                 f"Error creating DUT, connection error: {e}"
@@ -59,7 +72,7 @@ class Server:
         self.initialize_duts()
 
         try:
-            self.monitor_threads()
+            self.monitor_events()
         finally:
             self.stop()
 
@@ -90,17 +103,54 @@ class Server:
         """
         thread = threading.Thread(target=dut.monitor, daemon=True)
         self.threads.append((dut, thread))
+        print(self.threads)
         thread.start()
 
-    def monitor_threads(self):
+    def monitor_events(self):
         """
         Monitor the threads and restart them if they are not alive.
         """
+
+        options = {
+            "1": self.refresh_device_table,
+            "2": self.power_cycle_device,
+            "3": self.option_three,
+        }
+
+        sys.stdout.write("Enter option [1-3]: ")
+        sys.stdout.flush()
         while not self.stop_event.is_set():
+
+            # Check for user input
+            if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
+                user_input = sys.stdin.readline().strip()
+                if user_input in options:
+                    options[user_input]()  # Execute the corresponding function
+                else:
+                    self.server_logger.consoleLogger.info(
+                        f"Invalid option selected: {user_input}"
+                    )
+                sys.stdout.write("Enter option [1-3]: ")
+                sys.stdout.flush()
+
+            # Clear the prompt line after input is handled
+            # sys.stdout.write("\r")  # Move the cursor back to the start of the line
+
             for i, (dut, thread) in enumerate(self.threads):
                 if not thread.is_alive():
                     self.restart_dut_monitoring_thread(dut, i)
             sleep(1)
+
+    # Example user input options (define these functions within your class)
+    def refresh_device_table(self):
+        self.server_logger.consoleLogger.info("Option 1 selected")
+        self.create_dut()
+
+    def power_cycle_device(self):
+        self.server_logger.consoleLogger.info("Option 2 selected")
+
+    def option_three(self):
+        self.server_logger.consoleLogger.info("Option 3 selected")
 
     def restart_dut_monitoring_thread(self, dut, index):
         """

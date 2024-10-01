@@ -21,6 +21,7 @@ class DUT:
             switch controller.
         """
         self.name = dut["name"]
+        self.number = dut["number"]
         self.url = dut["url"]
         self.baudrate = dut["baudrate"]
         self.power_switch_port = dut["power_switch_port"]
@@ -31,7 +32,7 @@ class DUT:
         self.serial = None
         self.buffer = bytearray()
 
-        self.dut_logger = Logger(mode=self.name, verbose=3)
+        self.dut_logger = Logger(mode=self.name, logger=self.number, verbose=3)
 
         self.read_thread = None
         self._stop_event = threading.Event()
