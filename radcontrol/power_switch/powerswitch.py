@@ -6,7 +6,8 @@ import threading
 import queue
 import requests
 from radcontrol.power_switch.error_codes import ErrorCodes
-from utils.util import Logger
+from radcontrol.utils.logger import Logger
+
 
 class PowerSwitchController:
     __ON = "ON"
@@ -15,7 +16,7 @@ class PowerSwitchController:
     def __init__(self):
         """
         Initialize the PowerSwitchController instance.
-        
+
         Raises:
             OSError: If CURL is not available.
         """
@@ -23,15 +24,23 @@ class PowerSwitchController:
         try:
             subprocess.call(["curl", "--help"], stdout=subprocess.PIPE)
         except OSError:
-            raise OSError("CURL is not available, please install curl before using this module")
+            raise OSError(
+                "CURL is not available, please install curl before using this module"
+            )
 
-
-        self.power_switch_logger = Logger(mode='PowerS', verbose=3)
+        self.power_switch_logger = Logger(mode="PowerS", verbose=3)
         self.command_queue = queue.Queue()
         self.switch_thread = threading.Thread(target=self._process_commands)
         self.switch_thread.start()
 
-    def _lindy_switch(self, status: str, switch_port: int, switch_ip: str, username="snmp", password="1234") -> ErrorCodes:
+    def _lindy_switch(
+        self,
+        status: str,
+        switch_port: int,
+        switch_ip: str,
+        username="snmp",
+        password="1234",
+    ) -> ErrorCodes:
         """
         Change the status of a Lindy IP switch.
 
@@ -48,7 +57,11 @@ class PowerSwitchController:
         switch_status_list = list("000000000000000000000000")
         switch_status_list[switch_port - 1] = "1"
         led = "".join(switch_status_list)
-        url = f"http://{switch_ip}/ons.cgi?led={led}" if status == self.__ON else f"http://{switch_ip}/offs.cgi?led={led}"
+        url = (
+            f"http://{switch_ip}/ons.cgi?led={led}"
+            if status == self.__ON
+            else f"http://{switch_ip}/offs.cgi?led={led}"
+        )
         payload = {"led": led}
         str_token = f"{username}:{password}"
         base64_token = base64.b64encode(str_token.encode("ascii")).decode("ascii")
@@ -67,7 +80,9 @@ class PowerSwitchController:
 
         default_string = "Could not change Lindy IP switch status, portNumber:"
         try:
-            requests_status = requests.post(url, data=json.dumps(payload), headers=headers)
+            requests_status = requests.post(
+                url, data=json.dumps(payload), headers=headers
+            )
             requests_status.raise_for_status()
             reboot_status = ErrorCodes.SUCCESS
         except requests.exceptions.HTTPError as http_error:
@@ -94,10 +109,14 @@ class PowerSwitchController:
             ErrorCodes: The status code indicating the result of the operation.
         """
         return_code = self._lindy_switch(self.__OFF, select_power_switch, power_IP)
-        self.power_switch_logger.consoleLogger.warning(f"Powering down {select_power_switch}")
+        self.power_switch_logger.consoleLogger.warning(
+            f"Powering down {select_power_switch}"
+        )
         time.sleep(interval)
         return_code = self._lindy_switch(self.__ON, select_power_switch, power_IP)
-        self.power_switch_logger.consoleLogger.warning(f"Powering up {select_power_switch}")
+        self.power_switch_logger.consoleLogger.warning(
+            f"Powering up {select_power_switch}"
+        )
         time.sleep(interval)
         event.set()
         return return_code
@@ -131,4 +150,3 @@ class PowerSwitchController:
         """
         self.command_queue.put(None)
         self.switch_thread.join()
-
