@@ -1,7 +1,7 @@
 import threading
 import serial
 from queue import Queue, Empty
-from utils.util import Logger
+from radcontrol.utils.logger import Logger
 from host.log_id import DUT_QUEUE_EMPTY, DUT_QUEUE_NORMAL
 from frame.frame_decoder import PacketFrame
 
@@ -11,28 +11,28 @@ class DUT:
     Device Under Test (DUT) class for managing device communication and monitoring.
     """
 
-    def __init__(self, dut, PowerSwitchController):
+    def __init__(self, dut_info, PowerSwitchController):
         """
         Initialize the DUT instance.
 
         Args:
-            dut (dict): Dictionary containing DUT information.
+            dut_info (dict): Dictionary containing DUT information.
             PowerSwitchController (PowerSwitchController): Instance of the power
             switch controller.
         """
-        self.name = dut["name"]
-        self.number = dut["number"]
-        self.url = dut["url"]
-        self.baudrate = dut["baudrate"]
-        self.power_switch_port = dut["power_switch_port"]
-        self.power_port_IP = dut["power_port_IP"]
+        self.config = dut_info
+        self.name = dut_info["name"]
+        self.url = dut_info["url"]
+        self.baudrate = dut_info["baudrate"]
+        self.power_switch_port = dut_info["power_switch_port"]
+        self.power_port_IP = dut_info["power_port_IP"]
 
         self.power_controller = PowerSwitchController
         self.reboot_interval = 1  # seconds between powercycle on power controller
         self.serial = None
         self.buffer = bytearray()
 
-        self.dut_logger = Logger(mode=self.name, logger=self.number, verbose=3)
+        self.dut_logger = Logger(mode=self.name, verbose=3)
 
         self.read_thread = None
         self._stop_event = threading.Event()
@@ -120,13 +120,13 @@ class DUT:
             while not self._stop_event.is_set():
                 data, error_code = self.get_data(timeout=2)  # Adjust timeout as needed
                 if data:
-                    self.dut_logger.consoleLogger.debug(
+                    self.dut_logger.dataLogger.debug(
                         data.get_log_message(format_type="hex")
                     )
-                    self.dut_logger.consoleLogger.debug(
-                        data.get_log_message(format_type="decoded")
-                    )
-                    self.dut_logger.consoleLogger.debug(data.get_log_message())
+                    # self.dut_logger.consoleLogger.debug(
+                    #     data.get_log_message(format_type="decoded")
+                    # )
+                    # self.dut_logger.consoleLogger.debug(data.get_log_message())
                 if error_code == DUT_QUEUE_NORMAL:
                     continue
                 elif error_code == DUT_QUEUE_EMPTY:

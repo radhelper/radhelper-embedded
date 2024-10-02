@@ -37,7 +37,7 @@ class CustomTimedRotatingFileHandler(TimedRotatingFileHandler):
         # Generate new timestamp for the new filename
         timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
         new_filename = f"{self.originalBasename.split('_')[0]}_{timestamp}.log"
-        print(new_filename)
+
         self.baseFilename = os.path.join(self.originalDir, new_filename)
 
         # Open a new file with the new base filename
@@ -82,14 +82,12 @@ class Logger:
     def __init__(
         self,
         mode="",
-        logger=0,
         log_folder: str = "logs",
         verbose=2,
         log_rotate_interval=10,
     ):
 
         self.name = mode
-        self.number = logger
         self.setup_folder_file(log_folder)
         self.setup_level(verbose)
 
@@ -123,10 +121,7 @@ class Logger:
         master_fd, slave_fd = pty.openpty()  # Create a new pseudo-terminal
         terminal_path = os.ttyname(slave_fd)  # Get the TTY path of the slave end
 
-        if self.number == 0:  # Dedicated to the PowerS
-            link_path = "/tmp/logger_PowerS"
-        else:
-            link_path = "/tmp/logger_dut" + str(self.number)
+        link_path = "/tmp/logger_" + self.name
 
         # Check if the symbolic link already exists
         if os.path.islink(link_path) or os.path.exists(link_path):
@@ -147,10 +142,6 @@ class Logger:
         # Set up logger if it doesn't exist
         if not hasattr(self, "consoleLogger"):
             self.consoleLogger = logging.getLogger(self.name)
-
-        # Remove any existing handlers from the logger
-        if self.consoleLogger.hasHandlers():
-            self.consoleLogger.handlers.clear()
 
         # Set up new stream handler
         self.streamHandler = StreamHandler(terminal_stream)
