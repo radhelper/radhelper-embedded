@@ -58,6 +58,7 @@ class DUT:
         self.serial = None
 
     def process_buffer(self, output_queue):
+        counter = 0
         while True:
             if len(self.buffer) < 6:  # Minimum length for a valid frame
                 break
@@ -65,7 +66,7 @@ class DUT:
             header = self.buffer[0:1]
             if not self.is_valid_header(header):
                 self.buffer.pop(0)
-                # TODO: add some sort of counter/logger for droped bytes
+                counter += 1
                 continue
 
             if (
@@ -88,6 +89,8 @@ class DUT:
 
             self.process_message(full_message, output_queue)
             self.buffer = self.buffer[total_length:]
+        if counter > 0:
+            self.dut_logger.dataLogger.error(f"Bytes were popped {counter}")
 
     def is_valid_header(self, header):
         return header == b"\xaa"
