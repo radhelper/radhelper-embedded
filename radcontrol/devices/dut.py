@@ -2,7 +2,12 @@ import threading
 import serial
 from queue import Queue, Empty
 from radcontrol.utils.logger import Logger
-from host.log_id import DUT_QUEUE_EMPTY, DUT_QUEUE_NORMAL
+from host.log_id import (
+    DUT_QUEUE_EMPTY,
+    DUT_QUEUE_NORMAL,
+    DUT_FRAME_CRC_ERROR,
+    MAX_CONSECUTIVE_CRC_ERRORS,
+)
 from frame.frame_decoder import PacketFrame
 
 
@@ -109,6 +114,17 @@ class DUT:
         packet = PacketFrame(header, frame_id, payload_length, payload, crc_bytes, tail)
         output_queue.put(packet)
 
+    def print_to_log(self, data, format_type, level="debug"):
+        """
+        format_type is either hex, decoded, or empty
+        """
+        if level == "debug":
+            self.dut_logger.dataLogger.debug(data.get_log_message(format_type))
+        elif level == "warning":
+            self.dut_logger.dataLogger.warning(data.get_log_message(format_type))
+        elif level == "error":
+            self.dut_logger.dataLogger.error(data.get_log_message(format_type))
+
     def monitor(self):
         """
         Monitor the DUT by starting a read thread and handling power cycles.
@@ -119,21 +135,27 @@ class DUT:
 
         self.dut_logger.dataLogger.warning(f"Monitor started")
 
+        consecutive_crc_errors = 0
+
         try:
             while not self._stop_event.is_set():
                 data, error_code = self.get_data(timeout=2)  # Adjust timeout as needed
                 if data:
-                    self.dut_logger.dataLogger.debug(
-                        data.get_log_message(format_type="hex")
-                    )
-                    # self.dut_logger.consoleLogger.debug(
-                    #     data.get_log_message(format_type="decoded")
-                    # )
-                    # self.dut_logger.consoleLogger.debug(data.get_log_message())
-                if error_code == DUT_QUEUE_NORMAL:
-                    continue
+                    if error_code == DUT_QUEUE_NORMAL:
+                        self.print_to_log(data, format_type="hex")
+                        consecutive_crc_errors = 0
+                        continue
+                    elif error_code == DUT_FRAME_CRC_ERROR:
+                        self.print_to_log(data, format_type="hex", level="error")
+                        consecutive_crc_errors += 1  # Increment counter on CRC error
+                        if consecutive_crc_errors >= MAX_CONSECUTIVE_CRC_ERRORS:
+                            self.dut_logger.consoleLogger.error(
+                                f"More than {MAX_CONSECUTIVE_CRC_ERRORS} consecutive CRC errors, stopping monitor."
+                            )
+                            break
+                        continue
                 elif error_code == DUT_QUEUE_EMPTY:
-                    self.dut_logger.consoleLogger.warning(f"error out somehow")
+                    self.dut_logger.consoleLogger.error(f"Timeout on the transmission")
                     break
 
         finally:
@@ -152,7 +174,14 @@ class DUT:
         try:
             data = self.output_queue.get(timeout=timeout)
             # This is where I parse the data package and check for transmission errors
-            error_code = DUT_QUEUE_NORMAL  # Placeholder for actual error code parsing
+            if data.check_crc() == True:
+                error_code = (
+                    DUT_QUEUE_NORMAL  # Placeholder for actual error code parsing
+                )
+            else:
+                error_code = (
+                    DUT_FRAME_CRC_ERROR  # Placeholder for actual error code parsing
+                )
             return data, error_code
         except Empty:
             return None, DUT_QUEUE_EMPTY
