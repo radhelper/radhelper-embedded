@@ -125,13 +125,10 @@ class Logger:
 
         # Check if the symbolic link already exists
         if os.path.islink(link_path) or os.path.exists(link_path):
-            print(f"Symlink {link_path} already exists. Removing it...")
             os.remove(link_path)  # Remove the existing symlink or file
 
         # Create a symbolic link from the TTY to a fixed path
         os.symlink(terminal_path, link_path)
-
-        print(f"PTY created at {terminal_path} and linked to {link_path}")
 
         try:
             # Open the master side of the PTY for writing

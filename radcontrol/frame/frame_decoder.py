@@ -1,5 +1,6 @@
 import struct
 import yaml
+from .crc_table import crcTable
 
 # Load the frame_id_formatting from YAML file
 with open("frame_id_formatting.yaml", "r") as file:
@@ -57,6 +58,26 @@ class PacketFrame:
             )
 
         return unpacked_data
+
+    def check_crc(
+        self,
+    ):
+
+        # Concatenating the CRC bytes into a single number
+        # Assuming CRC is in big-endian format
+        crc = (self.crc_bytes[0] << 8) | self.crc_bytes[1]
+
+        # Converting payload to hex representation
+        payload_hex = [hex(byte) for byte in self.payload]
+        INITIAL_REMAINDER = 0xFFFF
+        FINAL_XOR_VALUE = 0x0000
+        remainder = INITIAL_REMAINDER
+
+        for byte in range(self.payload_length):
+            data = self.payload[byte] ^ (remainder >> (16 - 8))
+            remainder = crcTable[data] ^ (remainder << 8) & 0xFFFF
+
+        return crc == (remainder ^ FINAL_XOR_VALUE)
 
     def get_log_message(self, format_type="default"):
         if format_type == "hex":

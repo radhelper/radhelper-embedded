@@ -119,9 +119,10 @@ class Server:
             "1": self.refresh_device_table,
             "2": self.power_cycle_device,
             "3": self.print_status,
+            "4": self.stop,
         }
 
-        sys.stdout.write("Enter option [1-3]: ")
+        sys.stdout.write("Enter option [1-4]: ")
         sys.stdout.flush()
         while not self.stop_event.is_set():
 
@@ -236,6 +237,8 @@ class Server:
         # Stop and clean up all DUTs
         for dut_name in list(self.dut_instances.keys()):
             self.remove_dut(dut_name)
+
+        exit()
 
     def remove_dut(self, dut_name):
         """
