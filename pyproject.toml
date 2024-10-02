@@ -28,6 +28,7 @@ dependencies = [
     "icmplib", 
     "scapy",
     "pyserial",
+    "ipywidgets",
 ]
 
 [tool.setuptools.packages.find]

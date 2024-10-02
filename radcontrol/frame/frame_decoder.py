@@ -30,12 +30,12 @@ class PacketFrame:
     def format_hex(self):
         header_str = self.to_hex(self.header)
         frame_id_str = self.to_hex(self.frame_id)
-        payload_length_str = f"0x{self.payload_length:02x}"
+        payload_length_str = f"{self.payload_length:02x}"
         payload_str = self.to_hex(self.payload)
         crc_bytes_str = self.to_hex(self.crc_bytes)
         tail_str = self.to_hex(self.tail)
 
-        return f"{header_str},{frame_id_str},{payload_length_str},{payload_str},{crc_bytes_str},{tail_str}"
+        return f"{header_str}{frame_id_str}{payload_length_str}{payload_str}{crc_bytes_str}{tail_str}"
 
     def parse_payload(self):
         frame_id_int = int.from_bytes(self.frame_id, byteorder="big")
