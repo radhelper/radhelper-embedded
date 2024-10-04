@@ -2,11 +2,23 @@
 # see PySerial URL handlers for specifying the URL
 # https://pyserial.readthedocs.io/en/latest/url_handlers.html
 
-- name: "dutUART"
-  url: "/dev/ttyACM0"
+# - name: "dutUARTaaa"
+#   url: "/dev/ttyACM0"
+#   baudrate: 115200
+#   power_switch_port: 8
+#   power_port_IP: '130.246.241.130'
+
+- name: "dutREDV"
+  url: "socket://130.246.241.134:20108"
   baudrate: 115200
-  power_switch_port: 1
-  power_port_IP: '0.0.0.0'
+  power_switch_port: 8
+  power_port_IP: '130.246.241.130'
+
+# - name: "dutSF_sparrow"
+#   url: "socket://130.246.241.133:20108"
+#   baudrate: 115200
+#   power_switch_port: 7
+#   power_port_IP: '130.246.241.130'
 
 # - name: "dutIP"
 #   url: "socket://192.168.2.16:20108"

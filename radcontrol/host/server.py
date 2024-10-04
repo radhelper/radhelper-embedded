@@ -5,6 +5,7 @@ from time import sleep
 from devices.dut import DUT
 from radcontrol.utils.logger import Logger
 from radcontrol.power_switch.powerswitch import PowerSwitchController
+from radcontrol.power_switch.error_codes import ErrorCodes
 from file_manager import (
     open_tmux_window,
     remove_tmux_window,
@@ -22,16 +23,36 @@ class Server:
             args: Parsed arguments containing configuration information.
         """
         self.args = args
-        # self.uart_info = self.args.uart_info
+
         self.uart_info = get_dut_info("dut_config.yaml")
+
+        self.reboot_interval = (
+            args.power_cycle_interval
+        )  # seconds between powercycle on power controller
 
         self.dut_instances = {}  # Maps DUT names to DUT instances
         self.threads = {}  # Maps DUT names to their threads
 
         self.server_logger = Logger(mode="Server", verbose=3)
 
+        self.options = {
+            "0": self.print_help,
+            "1": self.refresh_device_table,
+            "2": self.power_cycle_device,
+            "3": self.print_status,
+            "4": self.stop,
+        }
+
         self.print_arguments()
-        self.power_controller = PowerSwitchController()
+
+        if args.is_test_UT == 1:
+            self.server_logger.dataLogger.warning(
+                f"ALL HELL IS BREAKING LOOSE: TEST IS LIVE AT THE UT!"
+            )
+
+        self.power_controller = PowerSwitchController(
+            args.is_test_UT, args.not_power_cycling
+        )
 
         self.start()
 
@@ -44,7 +65,6 @@ class Server:
         )
         for arg, value in vars(self.args).items():
             self.server_logger.dataLogger.info(f"{arg}: {value}")
-            # self.server_logger.consoleLogger.info(f"{arg}: {value}")
 
     def create_dut(self):
         """
@@ -73,6 +93,7 @@ class Server:
         """
 
         open_tmux_window()
+        sleep(1)
         self.create_dut()
         self.stop_event = threading.Event()
 
@@ -81,26 +102,25 @@ class Server:
         finally:
             self.stop()
 
-    # def initialize_duts(self):
-    #     """
-    #     Initialize DUTs by powering them up and starting their monitoring threads.
-    #     """
-    #     for dut_name, dut_instance in self.dut_instances.items():
-    #         self.power_cycle_dut(dut_instance)
-    #         self.start_monitoring_thread(dut_name, dut_instance)
-
     def power_cycle_dut(self, dut):
         """
         Power cycle a DUT and wait for the process to complete.
         """
+        shared_data = {"status": None}
         event = threading.Event()
         dut.power_controller.queue_power_cycle(
             dut.power_switch_port,
             dut.power_port_IP,
             event,
-            dut.reboot_interval,
+            shared_data,
+            self.reboot_interval,
         )
         event.wait()
+        # Check the result from the other thread
+        if shared_data["status"] != ErrorCodes.SUCCESS:  # Handle failure
+            self.server_logger.dataLogger.warning(
+                f"Power cycle failed with code: {shared_data['status']}"
+            )
 
     def start_monitoring_thread(self, dut_name, dut_instance):
         """
@@ -115,27 +135,22 @@ class Server:
         Monitor the threads and restart them if they are not alive.
         """
 
-        options = {
-            "1": self.refresh_device_table,
-            "2": self.power_cycle_device,
-            "3": self.print_status,
-            "4": self.stop,
-        }
+        input_text_string = "Enter your choice (1-4), or type 0 for help: "
 
-        sys.stdout.write("Enter option [1-4]: ")
+        sys.stdout.write(input_text_string)
         sys.stdout.flush()
         while not self.stop_event.is_set():
 
             # Check for user input
             if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
                 user_input = sys.stdin.readline().strip()
-                if user_input in options:
-                    options[user_input]()  # Execute the corresponding function
+                if user_input in self.options:
+                    self.options[user_input]()  # Execute the corresponding function
                 else:
                     self.server_logger.consoleLogger.info(
                         f"Invalid option selected: {user_input}"
                     )
-                sys.stdout.write("Enter option [1-3]: ")
+                sys.stdout.write(input_text_string)
                 sys.stdout.flush()
 
             for dut_name, thread in self.threads.items():
@@ -160,6 +175,17 @@ class Server:
         # Set up tmux window for monitoring (if required)
         log_file_name = "/tmp/logger_" + dut_name
         add_tmux_window("monitor", dut_name, f"cat {log_file_name}")
+
+    def print_help(self):
+        help_text = """
+        Available options:
+        0: Help - Displays this help message
+        1: Refresh Device Table - Refreshes the table of devices
+        2: Power Cycle Device - Power cycles the selected device
+        3: Print Status - Prints the currently active devices
+        4: Stop - Stops the program
+        """
+        print(help_text)
 
     def refresh_device_table(self):
         self.server_logger.consoleLogger.info("Refreshing DUTs...")
@@ -195,18 +221,29 @@ class Server:
                 # Optionally, update existing DUT configurations if they have changed
                 self.update_existing_dut(dut_name, dut_info)
 
+    # Just do it via the webinterface...
     def power_cycle_device(self):
-        self.server_logger.consoleLogger.info("Power Cycling")
-        sys.stdout.write("Select DUT by name: ")
+        sys.stdout.write("Select DUT by name (waiting for 10 seconds): \n")
+
+        for dut_name in self.dut_instances:
+            sys.stdout.write(f"->{dut_name}\n")
+
         sys.stdout.flush()
-        if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
+        sys.stdout.write(f">")
+        # Wait for 5 seconds for user input
+        ready, _, _ = select.select([sys.stdin], [], [], 10)
+
+        if ready:
             dut_name = sys.stdin.readline().strip()
             if dut_name in self.dut_instances:
+                self.server_logger.consoleLogger.info(f"Power Cycling {dut_name}")
                 self.restart_dut_monitoring_thread(dut_name)
             else:
-                self.server_logger.consoleLogger.info(
-                    f"Invalid DUT selected: {dut_name}"
-                )
+                sys.stdout.write(f"Invalid DUT selected: {dut_name}")
+                sys.stdout.flush()
+        else:
+            sys.stdout.write("No DUT selected. Exiting.")
+            sys.stdout.flush()
 
     def print_status(self):
         self.server_logger.consoleLogger.info("Active DUTs:")
@@ -266,7 +303,6 @@ class Server:
         self.server_logger.consoleLogger.info(f"Adding new DUT: {dut_name}")
         self.initialize_and_start_dut(dut_name, dut_info)
 
-    # UNTESTED
     def update_existing_dut(self, dut_name, new_dut_info):
         """
         Update the configuration of an existing DUT if necessary.
@@ -276,7 +312,4 @@ class Server:
             self.server_logger.consoleLogger.info(
                 f"Updating configuration for DUT: {dut_name}"
             )
-            # Update the DUT's configuration
-            # dut_instance.update_config(new_dut_info)
-            # Optionally, restart the monitoring thread if required
             self.restart_dut_monitoring_thread(dut_name)

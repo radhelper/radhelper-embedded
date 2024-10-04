@@ -1,5 +1,6 @@
 import threading
 import serial
+import socket
 from queue import Queue, Empty
 from radcontrol.utils.logger import Logger
 from host.log_id import (
@@ -33,7 +34,6 @@ class DUT:
         self.power_port_IP = dut_info["power_port_IP"]
 
         self.power_controller = PowerSwitchController
-        self.reboot_interval = 1  # seconds between powercycle on power controller
         self.serial = None
         self.buffer = bytearray()
 
@@ -49,7 +49,20 @@ class DUT:
         """
         # Setup threadlock and serial interface
         self._stop_event.clear()
-        self.serial = serial.serial_for_url(self.url, baudrate=self.baudrate)
+
+        try:
+            self.serial = serial.serial_for_url(self.url, baudrate=self.baudrate)
+        except socket.timeout:
+            self.dut_logger.dataLogger.error(
+                f"Connection timed out. No device connected."
+            )
+            return
+
+        except serial.SerialException as e:
+            self.dut_logger.dataLogger.error(f"Serial error occurred: {e}")
+            return
+
+        # Handle any other serial-related errors
         self.serial.flushInput()
         self.serial.flushOutput()
 
