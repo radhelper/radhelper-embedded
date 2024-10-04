@@ -50,8 +50,6 @@ class Server:
                 f"ALL HELL IS BREAKING LOOSE: TEST IS LIVE AT THE UT!"
             )
 
-        print(f"args {args.not_power_cycling}")
-
         self.power_controller = PowerSwitchController(
             args.is_test_UT, args.not_power_cycling
         )
