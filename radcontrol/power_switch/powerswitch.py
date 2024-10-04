@@ -151,7 +151,7 @@ class PowerSwitchController:
             ErrorCodes: The status code indicating the result of the operation.
         """
 
-        if self.not_power_cycling == True:
+        if self.not_power_cycling:
             self.power_switch_logger.consoleLogger.error(f"No power control!!")
             shared_data["status"] = ErrorCodes.SUCCESS
             event.set()

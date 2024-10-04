@@ -25,9 +25,6 @@ server:
   power_cycle_interval:
     value: 2
     help: "How long to wait for power on/off"
-  no_power_cycle: 
-    value: true
-    help: "Do not power cycle the DUT"
   switch_ip: 
     value: "130.246.241.130"
     help: "IP of the power switch"
@@ -35,5 +32,5 @@ server:
     value: "true"
     help: "The test is running at the UT"
   not_power_cycling: 
-    value: "false"
+    value: "true"
     help: "The test will not power cycle"
