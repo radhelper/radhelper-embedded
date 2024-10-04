@@ -1,27 +1,13 @@
-common:
-  verbose: 
-    value: 0
-    help: "Set verbosity level"
-  port: 
-    value: 2154
-    help: "Port number"
-  log_folder: 
-    value: "logs/"
-    help: "Folder to store the log files"
+# ------------------------------------------------------------------------------
+# Server Configuration for Power Cycle and Test Settings
+# 
+# This configuration file contains settings related to power cycling intervals,
+# power switch control, and test-specific flags.
+#  
+# ------------------------------------------------------------------------------
+
 
 server:
-  own_ip: 
-    value: "192.168.1.2"
-    help: "Server's own IP address"
-  directory: 
-    value: "./logs_client/"
-    help: "Folder on client to download log files from"
-  log_fetch_interval: 
-    value: 10
-    help: "Interval in minutes to fetch the log file"
-  log_folder: 
-    value: "logs_server/"
-    help: "Folder to store the log files on the server"
   power_cycle_interval:
     value: 2
     help: "How long to wait for power on/off"

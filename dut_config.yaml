@@ -1,28 +1,31 @@
-# config.yaml
-# see PySerial URL handlers for specifying the URL
-# https://pyserial.readthedocs.io/en/latest/url_handlers.html
 
-# - name: "dutUARTaaa"
+# ------------------------------------------------------------------------------
+# YAML Configuration for DUT (Device Under Test) Connections
+# 
+# This file defines the connection settings for different DUTs, including
+# the communication interface (e.g., UART or socket), baud rate, power 
+# switch configuration, and IP address for power control.
+# 
+# Fields:
+# - name:              Unique identifier for the DUT
+# - url:               Connection URL for the DUT (can be a serial device or a socket)
+# - baudrate:          Communication speed (baud rate) for the serial connection
+# - power_switch_port: Port on the power switch that controls the DUT's power
+# - power_port_IP:     IP address of the power switch controlling the DUT
+# 
+# Example Entries:
+# - name: "dutUART"
 #   url: "/dev/ttyACM0"
 #   baudrate: 115200
 #   power_switch_port: 8
 #   power_port_IP: '130.246.241.130'
+#
+# ------------------------------------------------------------------------------
 
-- name: "dutREDV"
-  url: "socket://130.246.241.134:20108"
+- name: "dutSF_sparrow"
+  url: "socket://130.246.241.133:20108"
   baudrate: 115200
-  power_switch_port: 8
+  power_switch_port: 7
   power_port_IP: '130.246.241.130'
 
-# - name: "dutSF_sparrow"
-#   url: "socket://130.246.241.133:20108"
-#   baudrate: 115200
-#   power_switch_port: 7
-#   power_port_IP: '130.246.241.130'
-
-# - name: "dutIP"
-#   url: "socket://192.168.2.16:20108"
-#   baudrate: 115200
-#   power_switch_port: 2
-#   power_port_IP: '0.0.0.0'
 
