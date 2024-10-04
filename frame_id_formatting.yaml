@@ -13,6 +13,7 @@
 frame_id_formatting:
   "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB": 0  # test frame: 32 unsigned chars
   "III": 1  # fini frame: 3 unsigned ints
+  "I": 8  # fini frame: 3 unsigned ints
   "IIIIII": 16  # exception frame: 6 unsigned ints
 
 # +--------+--------------------+-------------+---------------+

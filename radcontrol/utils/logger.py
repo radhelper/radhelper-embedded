@@ -222,4 +222,3 @@ class Logger:
         timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
         filename = f"{self.name}_{timestamp}.log"
         self.logfile = os.path.join(mode_log_folder, filename)
-        print(f"Store logs to {self.logfile}.")
