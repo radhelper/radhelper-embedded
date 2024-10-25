@@ -1,0 +1,38 @@
+[build-system]
+requires = [
+    "setuptools>=42",
+    "wheel",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "radcontrol"
+description = "RadHelper Tester - Automated testing utility for fault tolerance monitoring in radiation environments"
+version = "0.0.2"
+readme = "README.md"
+requires-python = ">=3.7"
+dependencies = [
+    "argparse",
+    "clang-format",
+    "yapf",
+    "isort",
+    "coloredlogs",
+    "python-json-logger",
+    "pigpio",
+    "openocd",
+    "pi-ina219",
+    "requests",
+    "pyyaml",
+    "ping3", 
+    "paramiko",
+    "icmplib", 
+    "scapy",
+    "pyserial",
+    "ipywidgets",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[project.entry-points.console_scripts]
+radcontrol = "radcontrol.run_server:run"

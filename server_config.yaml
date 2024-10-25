@@ -1,0 +1,16 @@
+# ------------------------------------------------------------------------------
+# Server Configuration for Power Cycle and Test Settings
+# 
+# This configuration file contains settings related to power cycling intervals,
+# power switch control, and test-specific flags.
+#  
+# ------------------------------------------------------------------------------
+ 
+
+server:
+  power_cycle_interval:
+    value: 2
+    help: "How long to wait for power on/off"
+  is_debug_test: 
+    value: true
+    help: "The test is running at the UT"

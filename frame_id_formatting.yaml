@@ -1,0 +1,55 @@
+# frame_id_formatting.yaml
+# 
+# This YAML file contains the frame ID formatting configurations.
+# Each entry maps a format string to a frame ID.
+# 
+# The format strings are used for unpacking the payload data dynamically based on the frame ID.
+#
+# The frame IDs are integer values that identify the type of frame.
+#
+# Modify the frame_id_formatting freely to comply with what your DUT outputs and match your use cases. Provided is an example. Follow this table formatting:
+#
+# ─────────────────────────────────────────────────────────────
+# | Format | C Type             | Python type | Standard size |
+# ─────────────────────────────────────────────────────────────
+# | x      | pad byte           | no value    | (7)           |
+# | c      | char               | bytes       | 1             |
+# | b      | signed char        | integer     | 1             |
+# | B      | unsigned char      | integer     | 1             |
+# | ?      | _Bool              | bool        | 1             |
+# | h      | short              | integer     | 2             |
+# | H      | unsigned short     | integer     | 2             |
+# | i      | int                | integer     | 4             |
+# | I      | unsigned int       | integer     | 4             |
+# | l      | long               | integer     | 4             |
+# | L      | unsigned long      | integer     | 4             |
+# | q      | long long          | integer     | 8             |
+# | Q      | unsigned long long | integer     | 8             |
+# | n      | ssize_t            | integer     | (3)           |
+# | N      | size_t             | integer     | (3)           |
+# | e      | (6)                | float       | 2             |
+# | f      | float              | float       | 4             |
+# | d      | double             | float       | 8             |
+# | s      | char[]             | bytes       | (9)           |
+# | p      | char[]             | bytes       | (8)           |
+# | P      | void*              | integer     | (5)           |
+# ─────────────────────────────────────────────────────────────
+
+frame_id_formatting:
+  "BBBB":       0   # frame_id 0 - Format: [B, B, B, B] (4 unsigned char)
+  "I":          1   # frame_id 1 - Format: [I] (1 unsigned int)
+  "IIIIIIIIII": 2   # frame_id 2 - Format: [I, I, I, I, I, I, I, I, I, I] (10 unsigned int)
+  "IIIIBBBB":   3   # frame_id 3 - Format: [I, I, I, I, B, B, B, B] (4 unsigned int and 4 unsigned char)
+  "III":        4   # frame_id 4 - Format: [I, I, I] (3 unsigned int)
+  "I":          5   # frame_id 5 - Format: [I] (1 unsigned int)
+  "I":          6   # frame_id 6 - Format: [I] (1 unsigned int)
+  "I":          7   # frame_id 7 - Format: [I] (1 unsigned int)
+  "I":          8   # frame_id 8 - Format: [I] (1 unsigned int)
+  "I":          9   # frame_id 9 - Format: [I] (1 unsigned int)
+  "I":          10  # frame_id 10 - Format: [I] (1 unsigned int)
+  "I":          11  # frame_id 11 - Format: [I] (1 unsigned int)
+  "I":          12  # frame_id 12 - Format: [I] (1 unsigned int)
+  "I":          13  # frame_id 13 - Format: [I] (1 unsigned int)
+  "I":          14  # frame_id 14 - Format: [I] (1 unsigned int)
+  "I":          15  # frame_id 15 - Format: [I] (1 unsigned int)
+  "I":          16  # frame_id 16 - Format: [I] (1 unsigned int)
