@@ -28,6 +28,7 @@ class DUT:
         """
         self.config = dut_info
         self.name = dut_info["name"]
+        self.timeout = dut_info["timeout"]
         self.url = dut_info["url"]
         self.baudrate = dut_info["baudrate"]
         self.power_switch_port = dut_info["power_switch_port"]
@@ -152,7 +153,9 @@ class DUT:
 
         try:
             while not self._stop_event.is_set():
-                data, error_code = self.get_data(timeout=2)  # Adjust timeout as needed
+                data, error_code = self.get_data(
+                    timeout=self.timeout
+                )  # Adjust timeout as needed
                 if data:
                     if error_code == DUT_QUEUE_NORMAL:
                         self.print_to_log(data, format_type="hex")

@@ -5,18 +5,12 @@
 # power switch control, and test-specific flags.
 #  
 # ------------------------------------------------------------------------------
-
+ 
 
 server:
   power_cycle_interval:
     value: 2
     help: "How long to wait for power on/off"
-  switch_ip: 
-    value: "130.246.241.130"
-    help: "IP of the power switch"
-  is_test_UT: 
-    value: "true"
+  is_debug_test: 
+    value: true
     help: "The test is running at the UT"
-  not_power_cycling: 
-    value: "true"
-    help: "The test will not power cycle"

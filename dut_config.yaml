@@ -14,18 +14,25 @@
 # - power_port_IP:     IP address of the power switch controlling the DUT
 # 
 # Example Entries:
-# - name: "dutUART"
-#   url: "/dev/ttyACM0"
+# - name: "dutEth"
+#   url: "socket://130.246.241.133:20108"
 #   baudrate: 115200
 #   power_switch_port: 8
 #   power_port_IP: '130.246.241.130'
 #
+# - name: "dutUART"
+#   url: "/dev/ttyUSB0"
+#   timeout: 5
+#   baudrate: 115200
+#   power_switch_port: 7
+#   power_port_IP: '192.168.0.216'
 # ------------------------------------------------------------------------------
 
-- name: "dutSF_sparrow"
-  url: "socket://130.246.241.133:20108"
+- name: "aaaaa"
+  url: "socket://192.168.0.104:20108"
+  timeout: 4
   baudrate: 115200
-  power_switch_port: 7
-  power_port_IP: '130.246.241.130'
+  power_switch_port: 9
+  power_port_IP: '192.168.0.216'
 
 

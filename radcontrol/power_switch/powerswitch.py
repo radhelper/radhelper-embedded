@@ -14,7 +14,7 @@ class PowerSwitchController:
     on_state = 0
     off_state = 1
 
-    def __init__(self, is_test_UT, not_power_cycling):
+    def __init__(self, is_debug_test):
         """
         Initialize the PowerSwitchController instance.
 
@@ -29,8 +29,7 @@ class PowerSwitchController:
                 "CURL is not available, please install curl before using this module"
             )
 
-        self.not_power_cycling = not_power_cycling
-        self.is_test_UT = is_test_UT
+        self.is_debug_test = is_debug_test
 
         self.power_switch_logger = Logger(mode="PowerS", verbose=3)
         self.command_queue = queue.Queue()
@@ -50,8 +49,8 @@ class PowerSwitchController:
             Response: The response object from the HTTP request.
         """
         BASE_URL = "http://{}/control_outlet.htm?outlet{}=1&op={}&submit=Apply"
-        USER = "frits"
-        PASS = "Whiskers!"
+        USER = "snmp"
+        PASS = "1234"
 
         try:
             requests_status = requests.get(
@@ -92,8 +91,9 @@ class PowerSwitchController:
         Returns:
             ErrorCodes: The status code indicating the result of the operation.
         """
+
         switch_status_list = list("000000000000000000000000")
-        switch_status_list[switch_port - 1] = "1"
+        switch_status_list[int(switch_port) - 1] = "1"
         led = "".join(switch_status_list)
         if status == self.on_state:
             url = f"http://{switch_ip}/ons.cgi?led={led}"
@@ -151,7 +151,7 @@ class PowerSwitchController:
             ErrorCodes: The status code indicating the result of the operation.
         """
 
-        if self.not_power_cycling:
+        if select_power_switch > 8:
             self.power_switch_logger.consoleLogger.error(f"No power control!!")
             shared_data["status"] = ErrorCodes.SUCCESS
             event.set()
@@ -162,10 +162,10 @@ class PowerSwitchController:
         )
 
         # Choose the appropriate function based on the context
-        switch_func = self._switch_UT_lab if self.is_test_UT else self._lindy_switch
+        switch_func = self._switch_UT_lab if self.is_debug_test else self._lindy_switch
 
         # Perform power cycle
-        return_code = switch_func(power_IP, select_power_switch, self.off_state)
+        return_code = switch_func(self.off_state, select_power_switch, power_IP)
         if return_code != ErrorCodes.SUCCESS:
             shared_data["status"] = return_code
             event.set()
@@ -173,7 +173,7 @@ class PowerSwitchController:
 
         time.sleep(interval)
 
-        return_code = switch_func(power_IP, select_power_switch, self.on_state)
+        return_code = switch_func(self.on_state, select_power_switch, power_IP)
         self.power_switch_logger.consoleLogger.warning(
             f"Powering up {select_power_switch}"
         )

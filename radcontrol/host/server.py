@@ -1,6 +1,7 @@
 import threading
 import select
 import sys
+import json
 from time import sleep
 from devices.dut import DUT
 from radcontrol.utils.logger import Logger
@@ -45,14 +46,10 @@ class Server:
 
         self.print_arguments()
 
-        if args.is_test_UT == 1:
-            self.server_logger.dataLogger.warning(
-                f"ALL HELL IS BREAKING LOOSE: TEST IS LIVE AT THE UT!"
-            )
+        if args.is_debug_test == True:
+            self.server_logger.dataLogger.warning(f"Test is set as debug mode")
 
-        self.power_controller = PowerSwitchController(
-            args.is_test_UT, args.not_power_cycling
-        )
+        self.power_controller = PowerSwitchController(args.is_debug_test)
 
         self.start()
 
@@ -64,7 +61,8 @@ class Server:
             f"Starting server with the following arguments:"
         )
         for arg, value in vars(self.args).items():
-            self.server_logger.dataLogger.info(f"{arg}: {value}")
+            if arg not in ["func", "uart_info"]:
+                self.server_logger.dataLogger.info(f"{arg}: {value}")
 
     def create_dut(self):
         """
@@ -76,11 +74,11 @@ class Server:
                 if dut_name not in self.dut_instances:
                     self.initialize_and_start_dut(dut_name, dut_info)
                     self.server_logger.consoleLogger.info(
-                        f"Added and initialized DUT with info: {dut_info}"
+                        f"Added and initialized DUT with info:\n {json.dumps(dut_info, indent=4)}"
                     )
                 else:
                     self.server_logger.consoleLogger.info(
-                        f"DUT already added: {dut_info}"
+                        f"DUT already added:\n {json.dumps(dut_info, indent=4)}"
                     )
         except Exception as e:
             self.server_logger.consoleLogger.error(
@@ -135,7 +133,7 @@ class Server:
         Monitor the threads and restart them if they are not alive.
         """
 
-        input_text_string = "Enter your choice (1-4), or type 0 for help: "
+        input_text_string = "Select an option (1-4), or type 0 for help: "
 
         sys.stdout.write(input_text_string)
         sys.stdout.flush()
