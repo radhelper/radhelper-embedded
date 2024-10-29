@@ -19,7 +19,7 @@ These constraints apply to the connected device:
 Clone this repository and navigate into it.
 
 ```bash
-$ cd radhelper-embedded
+cd radhelper-embedded
 ```
 
 Create a new virtual environment in the venv folder and install radcontrol as an editable package. 
@@ -27,10 +27,10 @@ Create a new virtual environment in the venv folder and install radcontrol as an
 Packages and requirements can be found in `pyproject.toml`. The project has been tested with python 3.9 and 3.12.
 
 ```bash
-$ python -m venv .venv
-$ source .venv/bin/activate
-$ python -m pip install --upgrade pip
-$ pip install -e .
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -e .
 ```
 
 ### 2. Configuring Frame Decoding
@@ -51,13 +51,13 @@ If the DUT port is set to a value greater than 8, the device will not be power s
 ## Running the Server
 
 1. Activate the virtual environment:
-    ```sh
-    $ source .venv/bin/activate
+    ```bash
+    source .venv/bin/activate
     ```
 
 2. Start the server using the `radcontrol` package:
-    ```sh
-    $ radcontrol
+    ```bash
+    radcontrol
     ```
 
 ## Example Output
