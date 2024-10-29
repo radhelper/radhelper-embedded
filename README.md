@@ -14,40 +14,39 @@ These constraints apply to the connected device:
 
 ## Getting Started
 
-### 1. Clone this Repository
+### 1. Clone this Repository and Set Up a Virtual Environment
+
+Clone this repository and navigate into it.
 
 ```bash
-$ git clone git@gitlab.utwente.nl:dcs-group/radiation-setups/radhelper-embedded.git
 $ cd radhelper-embedded
 ```
 
-### 2. Set Up a Virtual Environment
+Create a new virtual environment in the venv folder and install radcontrol as an editable package. 
 
-Create a new virtual environment in the venv folder and install radcontrol as an editable package.
+Packages and requirements can be found in `pyproject.toml`. The project has been tested with python 3.9 and 3.12.
 
 ```bash
-$ python3.9 -m venv .venv
+$ python -m venv .venv
 $ source .venv/bin/activate
 $ python -m pip install --upgrade pip
 $ pip install -e .
 ```
 
-## Configuring Frame Decoding
+### 2. Configuring Frame Decoding
 
 The `frame_id_formatting.yaml` file contains the frame ID formatting configurations. Each entry maps a format string to a frame ID, used to dynamically unpack the payload data based on the frame ID.
 
 Note: Adjust these values according to your benchmarks for optimal performance.
 
-## Configuring the TTYs Interfaces
+### 3. Configuring the TTYs Interfaces
 
 1. Update the `dut_config.yaml` file to reflect your setup. The url field should follow the format specified by [PySerial](https://pyserial.readthedocs.io/en/latest/url_handlers.html).
 
 2. Ensure that the `server_config.yaml` file is configured correctly for your environment.
     
-
-## Configuring IP-UART devices
-
-Modify the `dut_config.yaml` file to add or remove devices dynamically using the command line interface. If the DUT port is set to a value greater than 8, the device will not be power switched, which is useful for bench testing.
+Modify the `dut_config.yaml` file to add or remove devices dynamically using the command line interface. 
+If the DUT port is set to a value greater than 8, the device will not be power switched, which is useful for bench testing.
 
 ## Running the Server
 
